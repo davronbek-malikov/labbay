@@ -1,0 +1,18 @@
+node_modules
+.next
+out
+next-env.d.ts
+*.tsbuildinfo
+.vercel
+
+# Secrets. `.env*.local` alone did NOT cover worker/.env, which holds the
+# Telegram session string and the Supabase secret key.
+.env
+.env.*
+!.env.example
+!.env.local.example
+
+# Belt and braces for the worker.
+worker/.env
+worker/node_modules
+*.session

@@ -1,0 +1,225 @@
+@import "tailwindcss";
+
+/*
+  Labbay — minimal Korean-fintech.
+  Warm off-white ground, white cards with generous radius, forest green for
+  structure, accent green for action. No gradients, no decoration.
+*/
+@theme {
+  --color-canvas: #f7f7f5;
+  --color-paper: #ffffff;
+  --color-shell: #f0f0ed;
+  --color-field: #f0f0ed;
+
+  --color-forest: #0a4b3a;
+  --color-accent: #12a873;
+  --color-accent-deep: #0f8f61;
+  --color-mint: #d9ede4;
+
+  --color-ink: #171717;
+  --color-muted: #777777;
+  --color-faint: #9a9a9a;
+  --color-line: #eaeae6;
+  --color-line-soft: #f2f2ef;
+
+  --color-clay: #c4553d;
+  --color-clay-soft: #fbeee9;
+
+  /* One colour per settings row. People find a row by its colour and
+     position long before they read its label. */
+  --color-chip-green: #12a873;
+  --color-chip-forest: #0a4b3a;
+  --color-chip-blue: #2f6bd8;
+  --color-chip-violet: #7a5af8;
+  --color-chip-amber: #e08a1e;
+  --color-chip-clay: #c4553d;
+  --color-chip-slate: #6b7480;
+
+  --font-sans:
+    "Pretendard", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    system-ui, sans-serif;
+  --font-mono:
+    ui-monospace, "SF Mono", SFMono-Regular, "JetBrains Mono", Menlo, Consolas,
+    monospace;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  /* Numbers are data here — times, counts, phone numbers. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+
+  .label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-faint);
+  }
+
+  .display {
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+
+  /* Large figures carry the page — heavy, tight, dark. */
+  .figure {
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  ::selection {
+    background: var(--color-mint);
+  }
+}
+
+@layer utilities {
+  /* The one surface in the system. */
+  .card {
+    background: var(--color-paper);
+    border-radius: 24px;
+    box-shadow: 0 1px 2px rgb(23 23 23 / 0.03), 0 6px 20px -12px rgb(23 23 23 / 0.10);
+  }
+
+  .card-mint {
+    background: var(--color-mint);
+    border-radius: 24px;
+  }
+
+  .lift {
+    box-shadow:
+      0 2px 4px rgb(23 23 23 / 0.04),
+      0 24px 48px -16px rgb(23 23 23 / 0.18);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ------------------------------------------------- settings list pattern */
+@layer components {
+  .set-card {
+    background: var(--color-paper);
+    border-radius: 20px;
+    overflow: hidden;
+  }
+
+  /* Rows are buttons, reset back to looking like list items. */
+  .set-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 11px 14px;
+    border: none;
+    background: none;
+    font: inherit;
+    text-align: left;
+    color: var(--color-ink);
+    cursor: pointer;
+    transition: background-color 0.12s;
+  }
+
+  .set-row:hover {
+    background: var(--color-field);
+  }
+
+  /* The divider belongs between rows, never above the first one. */
+  .set-row + .set-row {
+    border-top: 1px solid var(--color-line);
+  }
+
+  .set-chip {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    flex: none;
+  }
+
+  /* Without this the subtitle's ellipsis never triggers inside the flex row. */
+  .set-text {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .set-title {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .set-sub {
+    font-size: 12.5px;
+    color: var(--color-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .set-chevron {
+    color: var(--color-faint);
+    flex: none;
+  }
+
+  /* Segmented control — the track, then equal-width options. */
+  .seg {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background: var(--color-field);
+    border-radius: 999px;
+  }
+
+  .seg-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 36px;
+    border: none;
+    background: none;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-muted);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+
+  .seg-btn[aria-pressed="true"] {
+    background: var(--color-paper);
+    color: var(--color-forest);
+    box-shadow: 0 1px 3px rgb(23 23 23 / 0.10);
+  }
+}
