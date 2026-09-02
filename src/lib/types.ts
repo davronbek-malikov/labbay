@@ -1,0 +1,133 @@
+export type StudentStatus = "active" | "paused";
+
+/** A group teaches many students; an individual course teaches exactly one. */
+export type GroupKind = "group" | "individual";
+
+/** What a course is priced in. */
+export type Currency = "UZS" | "USD" | "KRW";
+
+/** Who actually delivers a message: the app pretending, or the real worker. */
+export type DeliveryMode = "simulate" | "worker";
+
+export type Tone = "warm" | "direct" | "playful" | "formal";
+
+export type Language = "uz" | "ru" | "en";
+
+/**
+ * A course. Both kinds carry the same facts — what it is called, when it runs,
+ * when the final exam is, and what it costs.
+ */
+export interface Group {
+  id: string;
+  name: string;
+  kind: GroupKind;
+  /** ISO date (YYYY-MM-DD), or null when not decided yet. */
+  startDate: string | null;
+  endDate: string | null;
+  finalExamDate: string | null;
+  /** What one student pays for the whole course. */
+  fee: number;
+  currency: Currency;
+  createdAt: string;
+}
+
+/** One payment a student made towards their course fee. */
+export interface Payment {
+  id: string;
+  studentId: string;
+  amount: number;
+  /** ISO date (YYYY-MM-DD). */
+  paidAt: string;
+  note: string;
+  createdAt: string;
+}
+
+export interface Student {
+  id: string;
+  name: string;
+  /** Telegram handle (@name) or phone number in international format. */
+  telegram: string;
+  subject: string;
+  /** The course they are on. Null only while being moved between courses. */
+  groupId: string | null;
+  level: string;
+  /** Free-text context the agent conditions on, e.g. "shy, needs gentle tone". */
+  aiNotes: string;
+  status: StudentStatus;
+  /** ISO date of the last message we sent them, or null if never. */
+  lastContactedAt: string | null;
+  createdAt: string;
+}
+
+export type Audience =
+  | { kind: "all" }
+  | { kind: "group"; groupId: string }
+  | { kind: "picked"; studentIds: string[] };
+
+export type Channel = "text" | "voice";
+
+export interface Nudge {
+  id: string;
+  name: string;
+  audience: Audience;
+  /** 0 = Monday … 6 = Sunday. */
+  days: number[];
+  hour: number;
+  minute: number;
+  /** What the teacher wants to get across, in their own words. */
+  intent: string;
+  tone: Tone;
+  channel: Channel;
+  /** When on, each student gets their own wording. When off, everyone gets `intent`. */
+  personalize: boolean;
+  status: "active" | "paused";
+  /** Set when autopilot last fired this nudge, so it cannot double-send. */
+  lastRunAt?: string | null;
+  createdAt: string;
+}
+
+/** `sending` means a worker has claimed it and is talking to Telegram. */
+export type MessageStatus = "queued" | "sending" | "sent" | "failed";
+
+export interface Message {
+  id: string;
+  studentId: string;
+  nudgeId: string | null;
+  text: string;
+  status: MessageStatus;
+  channel: Channel;
+  scheduledAt: string;
+  sentAt: string | null;
+  /** Present when status is "failed". */
+  error?: string;
+}
+
+export interface Settings {
+  teacherName: string;
+  /** Phone of the Telegram account messages are sent from. */
+  telegramPhone: string;
+  telegramConnected: boolean;
+  /** Seconds waited between two sends, randomised within this range. */
+  delayMinSeconds: number;
+  delayMaxSeconds: number;
+  dailyCap: number;
+  quietHoursStart: number;
+  quietHoursEnd: number;
+  defaultTone: Tone;
+  language: Language;
+  /** When on, due nudges send themselves while the app is open. */
+  autopilot: boolean;
+  lastAutoRunAt: string | null;
+  deliveryMode: DeliveryMode;
+  /** Stamped by the worker each cycle, so the app can show if it is alive. */
+  workerSeenAt: string | null;
+}
+
+export interface Database {
+  groups: Group[];
+  payments: Payment[];
+  students: Student[];
+  nudges: Nudge[];
+  messages: Message[];
+  settings: Settings;
+}
