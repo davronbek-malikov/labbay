@@ -5,6 +5,7 @@ import { Page } from "@/components/AppShell";
 import { StudentDrawer } from "@/components/students/StudentDrawer";
 import { GroupDrawer } from "@/components/students/GroupDrawer";
 import { PaymentsPanel } from "@/components/students/PaymentsPanel";
+import { ContactCard } from "@/components/students/ContactCard";
 import { Badge, Button, EmptyState, Input, cx } from "@/components/ui";
 import { IconSearch } from "@/components/icons";
 import { useStore } from "@/lib/store/StoreProvider";
@@ -17,11 +18,15 @@ import {
   studentsIn,
   totalPaid,
 } from "@/lib/format";
-import type { Currency, Group, GroupKind, Student } from "@/lib/types";
+import type { Currency, Group, Student } from "@/lib/types";
+
+/** People first — a course is something a person can be put in, not a gate. */
+type Tab = "people" | "group" | "individual";
 
 export default function StudentsPage() {
   const { db } = useStore();
-  const [tab, setTab] = useState<GroupKind>("group");
+  const [tab, setTab] = useState<Tab>("people");
+  const [contact, setContact] = useState<Student | null>(null);
   const [query, setQuery] = useState("");
 
   const [openGroup, setOpenGroup] = useState<Group | "new" | null>(null);
@@ -29,8 +34,18 @@ export default function StudentsPage() {
   const [payingFor, setPayingFor] = useState<Student | null>(null);
   const [insideGroup, setInsideGroup] = useState<Group | null>(null);
 
-  const courses = db.groups.filter((g) => g.kind === tab);
   const q = query.trim().toLowerCase();
+  const courses = db.groups.filter((g) => g.kind === tab);
+
+  const people = [...db.students]
+    .filter((st) => {
+      if (!q) return true;
+      return (
+        st.name.toLowerCase().includes(q) ||
+        st.telegram.toLowerCase().includes(q)
+      );
+    })
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   const visibleCourses = useMemo(
     () =>
@@ -49,7 +64,7 @@ export default function StudentsPage() {
       <GroupDrawer
         open={openGroup !== null}
         group={openGroup === "new" ? null : openGroup}
-        kind={tab}
+        kind={tab === "individual" ? "individual" : "group"}
         onClose={() => setOpenGroup(null)}
         onDeleted={() => {
           setOpenGroup(null);
@@ -63,6 +78,18 @@ export default function StudentsPage() {
         onClose={() => setOpenStudent(null)}
       />
       <PaymentsPanel student={payingFor} onClose={() => setPayingFor(null)} />
+      <ContactCard
+        student={contact}
+        onClose={() => setContact(null)}
+        onEdit={(st) => {
+          setContact(null);
+          setOpenStudent(st);
+        }}
+        onPayments={(st) => {
+          setContact(null);
+          setPayingFor(st);
+        }}
+      />
     </>
   );
 
@@ -132,28 +159,32 @@ export default function StudentsPage() {
       title="Students"
       subtitle={`${db.students.filter((s) => s.status === "active").length} active across ${db.groups.length} course${db.groups.length === 1 ? "" : "s"}`}
       action={
-        <Button variant="primary" onClick={() => setOpenGroup("new")}>
-          {tab === "group" ? "New group" : "New student"}
+        <Button
+          variant="primary"
+          onClick={() =>
+            tab === "people" ? setOpenStudent("new") : setOpenGroup("new")
+          }
+        >
+          {tab === "people"
+            ? "Add student"
+            : tab === "group"
+              ? "New group"
+              : "New student"}
         </Button>
       }
     >
-      <div className="seg max-w-[320px] mb-5">
-        <button
-          type="button"
-          className="seg-btn"
-          aria-pressed={tab === "group"}
-          onClick={() => setTab("group")}
-        >
-          Groups
-        </button>
-        <button
-          type="button"
-          className="seg-btn"
-          aria-pressed={tab === "individual"}
-          onClick={() => setTab("individual")}
-        >
-          Individual
-        </button>
+      <div className="seg max-w-[380px] mb-5">
+        {(["people", "group", "individual"] as const).map((t) => (
+          <button
+            key={t}
+            type="button"
+            className="seg-btn"
+            aria-pressed={tab === t}
+            onClick={() => setTab(t)}
+          >
+            {t === "people" ? "People" : t === "group" ? "Groups" : "Individual"}
+          </button>
+        ))}
       </div>
 
       <div className="relative mb-5">
@@ -161,13 +192,70 @@ export default function StudentsPage() {
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={tab === "group" ? "Search course or student" : "Search student"}
+          placeholder={
+            tab === "people" ? "Search name or @username" : "Search course or student"
+          }
           className="pl-10"
           aria-label="Search"
         />
       </div>
 
-      {visibleCourses.length === 0 ? (
+      {tab === "people" ? (
+        people.length === 0 ? (
+          <EmptyState
+            title={db.students.length === 0 ? "No students yet" : "Nobody matches that"}
+            body={
+              db.students.length === 0
+                ? "Add a student with their name and @username. A course is optional — you can put them in one later."
+                : "Try a different name or handle."
+            }
+            action={
+              db.students.length === 0 ? (
+                <Button variant="primary" onClick={() => setOpenStudent("new")}>
+                  Add your first student
+                </Button>
+              ) : null
+            }
+          />
+        ) : (
+          <div className="set-card">
+            {people.map((st) => {
+              const course = db.groups.find((g) => g.id === st.groupId);
+              return (
+                <button
+                  key={st.id}
+                  type="button"
+                  className="set-row"
+                  onClick={() => setContact(st)}
+                >
+                  <span className="w-10 h-10 shrink-0 rounded-full bg-mint text-forest grid place-items-center text-[12px] font-bold">
+                    {initials(st.name)}
+                  </span>
+                  <span className="set-text">
+                    <span className="set-title block">{st.name}</span>
+                    <span className="set-sub block">
+                      {st.telegram || "No Telegram yet"}
+                      {course ? ` · ${course.name}` : ""}
+                    </span>
+                  </span>
+                  <span
+                    className={cx(
+                      "tabular text-[12px] shrink-0",
+                      st.lastContactedAt &&
+                        Date.now() - new Date(st.lastContactedAt).getTime() >
+                          7 * 86_400_000
+                        ? "text-clay"
+                        : "text-faint",
+                    )}
+                  >
+                    {since(st.lastContactedAt)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )
+      ) : visibleCourses.length === 0 ? (
         <EmptyState
           title={
             courses.length === 0

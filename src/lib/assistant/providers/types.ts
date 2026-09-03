@@ -7,6 +7,8 @@
 
 export type ChatBlock =
   | { type: "text"; text: string }
+  /** A picture the teacher attached. `data` is base64, without the prefix. */
+  | { type: "image"; mediaType: string; data: string }
   | { type: "tool_use"; id: string; name: string; input: Record<string, unknown> }
   | {
       type: "tool_result";
@@ -36,6 +38,8 @@ export type ProviderId = "gemini" | "groq" | "anthropic";
 export interface Provider {
   id: ProviderId;
   label: string;
+  /** Whether this provider's model can look at attached pictures. */
+  readonly vision: boolean;
   /** The model actually used, for display. */
   model: string;
   isConfigured(): boolean;

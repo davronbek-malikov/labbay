@@ -100,13 +100,30 @@ switch you can reach from your phone.
 
 ## Keeping it running
 
-Any always-on host works. Railway is the least fuss:
+You should never start this by hand. Put it on a host that stays up.
 
-1. New project → Deploy from GitHub repo → set the root directory to `worker`
-2. Add every variable from `.env` in the service's Variables tab
-3. Start command: `npm start`
+**Railway, from GitHub** (auto-deploys whenever you push):
 
-Fly.io, Render, or any VPS with `pm2 start index.mjs` work the same way.
+1. New project -> Deploy from GitHub repo -> pick the repo
+2. Settings -> Root Directory -> `worker`
+3. Variables -> paste the six values from your `.env`
+4. It restarts itself on crash; `railway.json` already says so
+
+**Railway, without GitHub** (uploads this folder directly):
+
+```bash
+npm i -g @railway/cli
+railway login
+cd worker
+railway init
+railway up
+railway variables --set TELEGRAM_API_ID=... --set TELEGRAM_API_HASH=...
+```
+
+Fly.io, Render (paid tier only — the free one sleeps), or any VPS with
+`pm2 start index.mjs` work the same way.
+
+Whichever you pick, the laptop can then be closed.
 
 The worker keeps no local state, so restarting it is always safe. Anything
 unsent is still queued in the database.

@@ -28,6 +28,7 @@ function cleanSchema(schema: unknown): unknown {
 
 interface GeminiPart {
   text?: string;
+  inlineData?: { mimeType: string; data: string };
   functionCall?: { name: string; args?: Record<string, unknown> };
   functionResponse?: { name: string; response: Record<string, unknown> };
 }
@@ -65,6 +66,10 @@ function toContents(messages: ChatMessage[]) {
     for (const block of blocks) {
       if (block.type === "text") {
         if (block.text.trim()) parts.push({ text: block.text });
+      } else if (block.type === "image") {
+        parts.push({
+          inlineData: { mimeType: block.mediaType, data: block.data },
+        });
       } else if (block.type === "tool_use") {
         nameById.set(block.id, block.name);
         parts.push({ functionCall: { name: block.name, args: block.input } });
@@ -80,6 +85,7 @@ function toContents(messages: ChatMessage[]) {
 export const geminiProvider: Provider = {
   id: "gemini",
   label: "Gemini",
+  vision: true,
   model: MODEL,
 
   isConfigured: () => Boolean(KEY),
