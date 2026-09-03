@@ -9,17 +9,36 @@ import {
 } from "@/lib/format";
 import { autopilotBlockedReason } from "@/lib/engine/send";
 import type { SendSpec } from "@/lib/engine/send";
-import type { Audience, Database, Nudge, Student, Tone } from "@/lib/types";
+import type {
+  Audience,
+  Currency,
+  Database,
+  Group,
+  GroupKind,
+  Nudge,
+  Payment,
+  Student,
+  Tone,
+} from "@/lib/types";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 /** What the chat page hands the executor so tools can act on the app. */
 export interface ToolDeps {
   db: Database;
+  /** Set by the chat page; the assistant asks, the page does the routing. */
+  navigate(screen: string): void;
   sendNow(spec: SendSpec): { queued: number; skippedByCap: number };
   addNudge(n: Omit<Nudge, "id" | "createdAt">): void;
   updateNudge(id: string, patch: Partial<Nudge>): void;
   updateStudent(id: string, patch: Partial<Student>): void;
+  addStudent(s: Omit<Student, "id" | "createdAt" | "lastContactedAt">): void;
+  removeStudent(id: string): void;
+  addGroup(g: Omit<Group, "id" | "createdAt">): void;
+  updateGroup(id: string, patch: Partial<Group>): void;
+  removeGroup(id: string): void;
+  addPayment(p: Omit<Payment, "id" | "createdAt">): void;
+  removeNudge(id: string): void;
   updateSettings(patch: Partial<Database["settings"]>): void;
 }
 
@@ -38,6 +57,17 @@ function findStudent(db: Database, name: string): Student | undefined {
     db.students.find((s) => s.name.split(" ")[0].toLowerCase() === q)
   );
 }
+
+function findGroup(db: Database, name: string): Group | undefined {
+  const q = name.trim().toLowerCase();
+  return (
+    db.groups.find((g) => g.name.toLowerCase() === q) ??
+    db.groups.find((g) => g.name.toLowerCase().includes(q))
+  );
+}
+
+const list = (v: unknown): string[] =>
+  Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
 
 /** Turns "all" / a group name / a list of names into a real audience. */
 function resolveAudience(db: Database, raw: string): Audience | { error: string } {
@@ -184,6 +214,159 @@ export function executeTool(
       });
     }
 
+    case "navigate_to": {
+      const screen = str(input.screen);
+      if (!screen) return fail("screen is required.");
+      const known = [
+        "dashboard",
+        "assistant",
+        "courses",
+        "students",
+        "send",
+        "nudges",
+        "messages",
+        "settings",
+      ];
+      if (!known.includes(screen)) return fail(`No screen called "${screen}".`);
+      deps.navigate(screen);
+      return ok(
+        { navigated_to: screen },
+        `Opened ${screen === "send" ? "Send now" : screen}`,
+      );
+    }
+
+    case "add_student": {
+      const name = str(input.name);
+      if (!name) return fail("name is required.");
+      if (findStudent(db, name)) return fail(`${name} is already on your list.`);
+
+      let groupId: string | null = null;
+      const courseName = str(input.course);
+      if (courseName) {
+        const course = findGroup(db, courseName);
+        if (!course) return fail(`No course called "${courseName}".`);
+        groupId = course.id;
+      }
+
+      deps.addStudent({
+        name,
+        telegram: str(input.telegram) ?? "",
+        subject: str(input.subject) ?? "",
+        level: str(input.level) ?? "",
+        aiNotes: str(input.ai_notes) ?? "",
+        status: "active",
+        groupId,
+      });
+      return ok({ added: name }, `Added ${name}`);
+    }
+
+    case "delete_student": {
+      const who = str(input.name);
+      if (!who) return fail("name is required.");
+      const student = findStudent(db, who);
+      if (!student) return fail(`No student called "${who}".`);
+      deps.removeStudent(student.id);
+      return ok({ deleted: student.name }, `Removed ${student.name}`);
+    }
+
+    case "create_course": {
+      const name = str(input.name);
+      if (!name) return fail("name is required.");
+      if (findGroup(db, name)) return fail(`A course called "${name}" exists.`);
+
+      deps.addGroup({
+        name,
+        kind: (str(input.kind) as GroupKind) ?? "group",
+        startDate: str(input.start_date) ?? null,
+        endDate: str(input.end_date) ?? null,
+        finalExamDate: str(input.final_exam_date) ?? null,
+        fee: num(input.fee) ?? 0,
+        currency: (str(input.currency) as Currency) ?? "UZS",
+        topics: list(input.topics),
+        homework: list(input.homework),
+        notes: str(input.notes) ?? "",
+      });
+      return ok({ created: name }, `Created ${name}`);
+    }
+
+    case "update_course": {
+      const name = str(input.name);
+      if (!name) return fail("name is required.");
+      const course = findGroup(db, name);
+      if (!course) return fail(`No course called "${name}".`);
+
+      const patch: Partial<Group> = {};
+      if (str(input.new_name)) patch.name = str(input.new_name)!;
+      if (str(input.start_date)) patch.startDate = str(input.start_date)!;
+      if (str(input.end_date)) patch.endDate = str(input.end_date)!;
+      if (str(input.final_exam_date))
+        patch.finalExamDate = str(input.final_exam_date)!;
+      if (num(input.fee) !== undefined) patch.fee = num(input.fee)!;
+      if (str(input.currency)) patch.currency = str(input.currency) as Currency;
+      if ("notes" in input) patch.notes = str(input.notes) ?? "";
+      if ("topics" in input) patch.topics = list(input.topics);
+      if ("homework" in input) patch.homework = list(input.homework);
+      // Appending is the common case, so it gets its own argument.
+      if (list(input.add_topics).length)
+        patch.topics = [...course.topics, ...list(input.add_topics)];
+      if (list(input.add_homework).length)
+        patch.homework = [...course.homework, ...list(input.add_homework)];
+
+      if (Object.keys(patch).length === 0) return fail("Nothing to change.");
+      deps.updateGroup(course.id, patch);
+      return ok({ updated: course.name }, `Updated ${course.name}`);
+    }
+
+    case "delete_course": {
+      const name = str(input.name);
+      if (!name) return fail("name is required.");
+      const course = findGroup(db, name);
+      if (!course) return fail(`No course called "${name}".`);
+      const members = db.students.filter((s) => s.groupId === course.id).length;
+      deps.removeGroup(course.id);
+      return ok(
+        { deleted: course.name, students_left_without_a_course: members },
+        `Deleted ${course.name}`,
+      );
+    }
+
+    case "record_payment": {
+      const who = str(input.student_name);
+      const amount = num(input.amount);
+      if (!who) return fail("student_name is required.");
+      if (!amount || amount <= 0) return fail("amount must be a positive number.");
+      const student = findStudent(db, who);
+      if (!student) return fail(`No student called "${who}".`);
+
+      const paidAt = str(input.paid_at) ?? new Date().toISOString().slice(0, 10);
+      deps.addPayment({
+        studentId: student.id,
+        amount,
+        paidAt,
+        note: str(input.note) ?? "",
+      });
+      const course = db.groups.find((g) => g.id === student.groupId);
+      return ok(
+        {
+          student: student.name,
+          amount: money(amount, course?.currency),
+          paid_at: paidAt,
+        },
+        `Recorded ${money(amount, course?.currency)} from ${student.name}`,
+      );
+    }
+
+    case "delete_nudge": {
+      const name = str(input.name);
+      if (!name) return fail("name is required.");
+      const nudge = db.nudges.find(
+        (n) => n.name.toLowerCase() === name.toLowerCase(),
+      );
+      if (!nudge) return fail(`No nudge called "${name}".`);
+      deps.removeNudge(nudge.id);
+      return ok({ deleted: nudge.name }, `Deleted ${nudge.name}`);
+    }
+
     case "list_courses": {
       return ok({
         courses: db.groups.map((g) => {
@@ -202,6 +385,9 @@ export function executeTool(
             students: members.map((s) => s.name),
             collected: money(collected, g.currency),
             expected: money(g.fee * members.length, g.currency),
+            topics: g.topics,
+            homework: g.homework,
+            notes: g.notes || undefined,
           };
         }),
       });

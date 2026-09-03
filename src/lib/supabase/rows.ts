@@ -30,6 +30,9 @@ export interface GroupRow {
   final_exam_date: string | null;
   fee: number;
   currency: Currency;
+  topics: string[] | null;
+  homework: string[] | null;
+  notes: string | null;
   created_at: string;
 }
 
@@ -141,6 +144,9 @@ export const toGroup = (r: GroupRow): Group => ({
   finalExamDate: r.final_exam_date,
   fee: Number(r.fee),
   currency: r.currency ?? "UZS",
+  topics: r.topics ?? [],
+  homework: r.homework ?? [],
+  notes: r.notes ?? "",
   createdAt: r.created_at,
 });
 
@@ -155,6 +161,9 @@ export function fromGroup(
   if (p.finalExamDate !== undefined) row.final_exam_date = p.finalExamDate;
   if (p.fee !== undefined) row.fee = p.fee;
   if (p.currency !== undefined) row.currency = p.currency;
+  if (p.topics !== undefined) row.topics = p.topics;
+  if (p.homework !== undefined) row.homework = p.homework;
+  if (p.notes !== undefined) row.notes = p.notes;
   return row;
 }
 

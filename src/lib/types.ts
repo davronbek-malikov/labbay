@@ -28,6 +28,12 @@ export interface Group {
   /** What one student pays for the whole course. */
   fee: number;
   currency: Currency;
+  /** What the course covers. Every teacher shapes this differently. */
+  topics: string[];
+  /** Homework the class works through. */
+  homework: string[];
+  /** Anything else worth remembering about the course. */
+  notes: string;
   createdAt: string;
 }
 
