@@ -79,6 +79,9 @@ function toMessages(system: string, messages: ChatMessage[]): OpenAIMessage[] {
 export const groqProvider: Provider = {
   id: "groq",
   label: "Groq",
+  // The default text model cannot see pictures; the app says so rather than
+  // silently dropping them.
+  vision: false,
   model: MODEL,
 
   isConfigured: () => Boolean(KEY),

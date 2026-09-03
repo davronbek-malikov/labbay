@@ -36,7 +36,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ providers: [] }, { status: 401 });
   }
   return NextResponse.json({
-    providers: available().map((p) => ({ id: p.id, label: p.label })),
+    providers: available().map((p) => ({
+      id: p.id,
+      label: p.label,
+      vision: p.vision,
+    })),
   });
 }
 

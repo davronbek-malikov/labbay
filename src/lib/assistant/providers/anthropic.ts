@@ -12,6 +12,7 @@ const MODEL = process.env.ANTHROPIC_MODEL || "claude-opus-5";
 export const anthropicProvider: Provider = {
   id: "anthropic",
   label: "Claude",
+  vision: true,
   model: MODEL,
 
   isConfigured: () =>
@@ -53,6 +54,15 @@ export const anthropicProvider: Provider = {
                     id: b.id,
                     name: b.name,
                     input: b.input,
+                  }
+                : b.type === "image"
+                ? {
+                    type: "image" as const,
+                    source: {
+                      type: "base64" as const,
+                      media_type: b.mediaType as "image/png",
+                      data: b.data,
+                    },
                   }
                 : { type: "text" as const, text: b.text },
           ),

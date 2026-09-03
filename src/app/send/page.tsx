@@ -18,6 +18,7 @@ export default function SendPage() {
   const [intent, setIntent] = useState("");
   const [tone, setTone] = useState<Tone>(db.settings.defaultTone);
   const [personalized, setPersonalized] = useState(true);
+  const [showOptions, setShowOptions] = useState(false);
   const [result, setResult] = useState<{ queued: number; skipped: number } | null>(
     null,
   );
@@ -75,119 +76,86 @@ export default function SendPage() {
   return (
     <Page
       title="Send now"
-      subtitle="One message, written for each student, going out the moment you press send."
+      subtitle="Write it once. Press send."
     >
       <div className="grid lg:grid-cols-[1fr_400px] gap-6 items-start">
         <div className="card p-6 md:p-7 space-y-6">
-          <Field label="Who">
+          <Field label="Message">
+            <Textarea
+              rows={5}
+              value={intent}
+              onChange={(e) => setIntent(e.target.value)}
+              placeholder="Remind them the homework is due tomorrow."
+              autoFocus
+            />
+          </Field>
+
+          <div>
+            <span className="label block mb-2">Who gets it</span>
             <div className="grid sm:grid-cols-3 gap-2.5">
               <Pick
                 on={audience.kind === "all"}
                 onClick={() => setAudience({ kind: "all" })}
                 title="Everyone"
-                body={`${db.students.filter((s) => s.status === "active").length} active`}
+                body={`${db.students.filter((x) => x.status === "active").length} active`}
               />
               <Pick
                 on={audience.kind === "group"}
                 onClick={() =>
                   setAudience({ kind: "group", groupId: groups[0]?.id ?? "" })
                 }
-                title="One group"
+                title="One course"
                 body="Pick a class"
               />
               <Pick
                 on={audience.kind === "picked"}
                 onClick={() => setAudience({ kind: "picked", studentIds: [] })}
-                title="Hand-picked"
-                body="Choose students"
+                title="Some students"
+                body="Choose people"
               />
             </div>
-          </Field>
+          </div>
 
-          {audience.kind === "group" ? (
-            <Select
-              value={audience.groupId}
-              onChange={(e) =>
-                setAudience({ kind: "group", groupId: e.target.value })
-              }
-              aria-label="Course"
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowOptions((v) => !v)}
+              className="text-[13px] font-semibold text-accent hover:text-forest"
             >
-              {groups.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.name}
-                </option>
-              ))}
-            </Select>
-          ) : null}
+              {showOptions ? "Hide options" : "Options"}
+            </button>
 
-          {audience.kind === "picked" ? (
-            <div className="rounded-[18px] bg-field max-h-[240px] overflow-y-auto p-2">
-              {db.students
-                .filter((s) => s.status === "active")
-                .map((s) => {
-                  const on = audience.studentIds.includes(s.id);
-                  return (
-                    <label
-                      key={s.id}
-                      className="flex items-center gap-3 px-3 py-2 rounded-[12px] cursor-pointer hover:bg-paper"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={on}
-                        onChange={() =>
-                          setAudience({
-                            kind: "picked",
-                            studentIds: on
-                              ? audience.studentIds.filter((x) => x !== s.id)
-                              : [...audience.studentIds, s.id],
-                          })
-                        }
-                        className="accent-[#12a873] w-4 h-4"
-                      />
-                      <span className="text-[13.5px] flex-1">{s.name}</span>
-                      <span className="text-[12px] text-faint">
-                        {groupNameOf(s, db.groups)}
-                      </span>
-                    </label>
-                  );
-                })}
-            </div>
-          ) : null}
-
-          <Field
-            label="What do you want to say?"
-            hint="Write the point, not the wording. Each student gets their own version of it."
-          >
-            <Textarea
-              rows={4}
-              value={intent}
-              onChange={(e) => setIntent(e.target.value)}
-              placeholder="Remind them the homework is due tomorrow and tell them I am proud of this week's work."
-            />
-          </Field>
-
-          <div className="flex flex-wrap items-center gap-4">
-            <Field label="Tone">
-              <Select
-                value={tone}
-                onChange={(e) => setTone(e.target.value as Tone)}
-                className="w-[160px]"
-              >
-                {TONES.map((t) => (
-                  <option key={t} value={t}>
-                    {t[0].toUpperCase() + t.slice(1)}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-            <div className="flex items-center gap-3 pt-6">
-              <Toggle
-                checked={personalized}
-                onChange={setPersonalized}
-                label="Write a different message for each student"
-              />
-              <span className="text-[13.5px]">Personalise per student</span>
-            </div>
+            {showOptions ? (
+              <div className="flex flex-wrap items-center gap-5 mt-4">
+                <Field label="Tone">
+                  <Select
+                    value={tone}
+                    onChange={(e) => setTone(e.target.value as Tone)}
+                    className="w-[160px]"
+                  >
+                    {TONES.map((t) => (
+                      <option key={t} value={t}>
+                        {t[0].toUpperCase() + t.slice(1)}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+                <div className="flex items-center gap-3 pt-6">
+                  <Toggle
+                    checked={personalized}
+                    onChange={setPersonalized}
+                    label="Write a different message for each student"
+                  />
+                  <span className="text-[13.5px]">Reword for each student</span>
+                </div>
+              </div>
+            ) : (
+              <p className="text-[12.5px] text-muted mt-2">
+                {personalized
+                  ? "Each student gets their own wording, built from your message."
+                  : "Everyone gets exactly what you typed."}
+              </p>
+            )}
           </div>
 
           {quiet ? (

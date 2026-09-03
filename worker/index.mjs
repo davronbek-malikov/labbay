@@ -24,7 +24,7 @@ const {
   SUPABASE_URL,
   SUPABASE_SECRET_KEY,
   TEACHER_ID,
-  POLL_SECONDS = "30",
+  POLL_SECONDS = "20",
   DRY_RUN = "0",
 } = process.env;
 
@@ -352,6 +352,28 @@ async function tick() {
   }
 }
 
+/**
+ * Only one cycle at a time.
+ *
+ * A poll and a realtime event can arrive together; without this guard both
+ * would read the same queued rows. The claim would still stop a double send,
+ * but this keeps the log readable and the pacing honest.
+ */
+let running = false;
+
+async function runTick(reason) {
+  if (running) return;
+  running = true;
+  try {
+    await tick();
+  } catch (error) {
+    // One bad cycle must never kill the worker.
+    log(`cycle error (${reason}): ${error.message}`);
+  } finally {
+    running = false;
+  }
+}
+
 /* -------------------------------------------------------------------- boot */
 
 // Check Supabase before Telegram, so a typo in the URL is obvious rather
@@ -393,21 +415,45 @@ log(`signed in as ${[me.firstName, me.lastName].filter(Boolean).join(" ")}`);
 log(`teacher ${TEACHER_ID}, polling every ${pollMs / 1000}s${dryRun ? " (DRY RUN)" : ""}`);
 
 let stopping = false;
+
+/**
+ * Realtime is what makes a message leave straight after you press send.
+ * Polling stays as the safety net: it catches anything scheduled for later,
+ * and anything a dropped connection missed.
+ */
+const channel = db
+  .channel(`labbay-worker-${TEACHER_ID}`)
+  .on(
+    "postgres_changes",
+    {
+      event: "INSERT",
+      schema: "public",
+      table: "messages",
+      filter: `teacher_id=eq.${TEACHER_ID}`,
+    },
+    () => {
+      log("new message — sending now");
+      void runTick("realtime");
+    },
+  )
+  .subscribe((status) => {
+    if (status === "SUBSCRIBED") log("listening for new messages");
+    else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+      log(`realtime ${status.toLowerCase()} — polling still covers it`);
+    }
+  });
+
 for (const signal of ["SIGINT", "SIGTERM"]) {
   process.on(signal, async () => {
     stopping = true;
     log("shutting down");
+    await db.removeChannel(channel).catch(() => {});
     await tg.disconnect().catch(() => {});
     process.exit(0);
   });
 }
 
 while (!stopping) {
-  try {
-    await tick();
-  } catch (error) {
-    // One bad cycle must never kill the worker.
-    log(`cycle error: ${error.message}`);
-  }
+  await runTick("poll");
   await sleep(pollMs);
 }
