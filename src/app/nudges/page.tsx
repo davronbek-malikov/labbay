@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Page } from "@/components/AppShell";
+import { StudentsNav } from "@/components/students/StudentsNav";
 import { WeekStrip, DAY_NAMES } from "@/components/WeekStrip";
 import { Badge, Button, EmptyState } from "@/components/ui";
 import { useStore } from "@/lib/store/StoreProvider";
@@ -27,6 +28,8 @@ export default function NudgesPage() {
         </Link>
       }
     >
+      <StudentsNav />
+
       {nudges.length === 0 ? (
         <EmptyState
           title="No nudges yet"

@@ -28,6 +28,9 @@ const groups: Group[] = [
     finalExamDate: dateOnly(-52),
     fee: 1_200_000,
     currency: "UZS",
+    topics: [],
+    homework: [],
+    notes: "",
     createdAt: iso(60),
   },
   {
@@ -39,6 +42,9 @@ const groups: Group[] = [
     finalExamDate: dateOnly(-25),
     fee: 900_000,
     currency: "UZS",
+    topics: [],
+    homework: [],
+    notes: "",
     createdAt: iso(120),
   },
   {
@@ -50,6 +56,9 @@ const groups: Group[] = [
     finalExamDate: dateOnly(-85),
     fee: 700_000,
     currency: "UZS",
+    topics: [],
+    homework: [],
+    notes: "",
     createdAt: iso(30),
   },
   {
@@ -61,6 +70,9 @@ const groups: Group[] = [
     finalExamDate: dateOnly(-40),
     fee: 2_000_000,
     currency: "UZS",
+    topics: [],
+    homework: [],
+    notes: "",
     createdAt: iso(45),
   },
   {
@@ -72,6 +84,9 @@ const groups: Group[] = [
     finalExamDate: dateOnly(-64),
     fee: 2_400_000,
     currency: "UZS",
+    topics: [],
+    homework: [],
+    notes: "",
     createdAt: iso(20),
   },
 ];

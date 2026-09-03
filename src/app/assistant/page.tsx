@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Composer } from "@/components/assistant/Composer";
 import { Button, cx } from "@/components/ui";
 import { Markdown } from "@/lib/markdown";
@@ -35,8 +36,8 @@ interface ProviderInfo {
 const SUGGESTIONS = [
   "Who has gone quiet?",
   "Who still owes me money?",
-  "Send everyone a homework reminder",
-  "Set up a Friday well done at 18:00",
+  "Where do I change sending limits?",
+  "Add a student called Aziza with @aziza_k",
 ];
 
 const MAX_TOOL_ROUNDS = 6;
@@ -61,6 +62,7 @@ function loadChats(): Conversation[] {
 export default function AssistantPage() {
   const store = useStore();
   const { db } = store;
+  const router = useRouter();
 
   const [chats, setChats] = useState<Conversation[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -246,7 +248,13 @@ export default function AssistantPage() {
           const outcome = executeTool(
             call.name,
             (call.input ?? {}) as Record<string, unknown>,
-            store,
+            {
+              ...store,
+              navigate: (screen) => {
+                const path = screen === "dashboard" ? "/dashboard" : `/${screen}`;
+                window.setTimeout(() => router.push(path), 900);
+              },
+            },
           );
           if (outcome.sideEffect) actions.push(outcome.sideEffect);
           return {

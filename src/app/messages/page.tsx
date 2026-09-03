@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Page } from "@/components/AppShell";
+import { StudentsNav } from "@/components/students/StudentsNav";
 import Link from "next/link";
 import { Badge, Button, Drawer, EmptyState, Input, Select, cx } from "@/components/ui";
 import { IconSearch } from "@/components/icons";
@@ -64,6 +65,8 @@ export default function MessagesPage() {
       subtitle={`${counts.sent} sent · ${counts.queued} queued · ${counts.failed} failed`}
       backHref="/dashboard"
     >
+      <StudentsNav />
+
       {!db.settings.telegramConnected && counts.queued > 0 ? (
         <div className="card-mint p-5 mb-5">
           <p className="text-[14px] font-bold text-forest">

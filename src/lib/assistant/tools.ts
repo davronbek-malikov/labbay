@@ -49,6 +49,150 @@ export const ASSISTANT_TOOLS: ToolSpec[] = [
     },
   },
   {
+    name: "navigate_to",
+    description:
+      "Take the teacher to a screen in the app. Use it whenever they ask where something is or how to reach it. Screens: dashboard (Today), assistant, courses, students, send (Send now), nudges, messages, settings. Ask first unless they clearly said take me there.",
+    input_schema: {
+      type: "object",
+      properties: {
+        screen: {
+          type: "string",
+          enum: [
+            "dashboard",
+            "assistant",
+            "courses",
+            "students",
+            "send",
+            "nudges",
+            "messages",
+            "settings",
+          ],
+        },
+        reason: {
+          type: "string",
+          description: "One short line telling them what they will find there.",
+        },
+      },
+      required: ["screen"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "add_student",
+    description:
+      "Add a student. Only the name is required; a course is optional and can be set later.",
+    input_schema: {
+      type: "object",
+      properties: {
+        name: { type: "string" },
+        telegram: { type: "string", description: "@username, or a phone number." },
+        course: { type: "string", description: "Name of an existing course." },
+        subject: { type: "string" },
+        level: { type: "string" },
+        ai_notes: { type: "string", description: "What you should know when writing to them." },
+      },
+      required: ["name"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "delete_student",
+    description:
+      "Permanently remove a student and their payment history. Always confirm with the teacher first.",
+    input_schema: {
+      type: "object",
+      properties: { name: { type: "string" } },
+      required: ["name"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "create_course",
+    description:
+      "Create a course. A group course teaches many students; an individual course teaches one.",
+    input_schema: {
+      type: "object",
+      properties: {
+        name: { type: "string" },
+        kind: { type: "string", enum: ["group", "individual"] },
+        start_date: { type: "string", description: "YYYY-MM-DD" },
+        end_date: { type: "string", description: "YYYY-MM-DD" },
+        final_exam_date: { type: "string", description: "YYYY-MM-DD" },
+        fee: { type: "number", description: "What one student pays in total." },
+        currency: { type: "string", enum: ["UZS", "USD", "KRW"] },
+        topics: { type: "array", items: { type: "string" } },
+        homework: { type: "array", items: { type: "string" } },
+        notes: { type: "string" },
+      },
+      required: ["name"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "update_course",
+    description:
+      "Change a course by name: its dates, exam, fee, topics, homework, or notes. Passing topics or homework replaces the whole list.",
+    input_schema: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "The course to change." },
+        new_name: { type: "string" },
+        start_date: { type: "string" },
+        end_date: { type: "string" },
+        final_exam_date: { type: "string" },
+        fee: { type: "number" },
+        currency: { type: "string", enum: ["UZS", "USD", "KRW"] },
+        topics: { type: "array", items: { type: "string" } },
+        add_topics: {
+          type: "array",
+          items: { type: "string" },
+          description: "Append these instead of replacing the list.",
+        },
+        homework: { type: "array", items: { type: "string" } },
+        add_homework: { type: "array", items: { type: "string" } },
+        notes: { type: "string" },
+      },
+      required: ["name"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "delete_course",
+    description:
+      "Delete a course. Its students stay but end up with no course. Always confirm first.",
+    input_schema: {
+      type: "object",
+      properties: { name: { type: "string" } },
+      required: ["name"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "record_payment",
+    description: "Record money a student has paid towards their course fee.",
+    input_schema: {
+      type: "object",
+      properties: {
+        student_name: { type: "string" },
+        amount: { type: "number" },
+        paid_at: { type: "string", description: "YYYY-MM-DD. Defaults to today." },
+        note: { type: "string" },
+      },
+      required: ["student_name", "amount"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "delete_nudge",
+    description: "Delete a scheduled nudge by name. Confirm first.",
+    input_schema: {
+      type: "object",
+      properties: { name: { type: "string" } },
+      required: ["name"],
+      additionalProperties: false,
+    },
+  },
+  {
     name: "list_nudges",
     description:
       "List scheduled nudges: name, days, time, audience, tone, and whether each is active.",
@@ -165,11 +309,14 @@ You are talking to the teacher who owns the app, not to a student.
 
 What you can do:
 - Answer questions about their students, nudges, and messages by calling tools.
-- Operate the app for them: send messages, create and pause nudges, edit student notes, switch autopilot on or off.
+- Operate the app for them: add, edit and remove students and courses, record payments, send messages, create, pause and delete nudges, switch autopilot on or off.
+- Take them to any screen with navigate_to when they ask where something is or how to get there.
 - Answer money questions: who has paid, who still owes, how much a course has collected. Amounts are Uzbek so'm.
 - Act as a general assistant when they ask something unrelated to the app — answer directly, no tools needed.
 
 How to behave:
+- When they ask where something is, or how to do something, answer briefly and then offer to take them: "Settings is where you control sending. Shall I open it?" If they say yes, or they already said something like "take me there", call navigate_to.
+- Anything that deletes needs an explicit yes first. Say exactly what will be lost.
 - Call get_overview before answering broad questions like "how are things" or "who needs attention".
 - Before sending anything or creating a nudge, say what you are about to do and get a yes — unless the teacher's message already is the instruction ("send everyone a reminder about homework" is an instruction; "should I remind them?" is not).
 - After a tool changes something, say plainly what changed.

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button, Drawer, Field, Input, Select } from "@/components/ui";
+import { Button, Drawer, Field, Input, Select, Textarea } from "@/components/ui";
+import { ListEditor } from "@/components/students/ListEditor";
 import { useStore } from "@/lib/store/StoreProvider";
 import { CURRENCIES, studentsIn } from "@/lib/format";
 import type { Currency, Group, GroupKind } from "@/lib/types";
@@ -13,6 +14,9 @@ interface Draft {
   finalExamDate: string;
   fee: string;
   currency: Currency;
+  topics: string[];
+  homework: string[];
+  notes: string;
 }
 
 const blank: Draft = {
@@ -22,6 +26,9 @@ const blank: Draft = {
   finalExamDate: "",
   fee: "",
   currency: "UZS",
+  topics: [],
+  homework: [],
+  notes: "",
 };
 
 const toDraft = (g: Group): Draft => ({
@@ -31,6 +38,9 @@ const toDraft = (g: Group): Draft => ({
   finalExamDate: g.finalExamDate ?? "",
   fee: String(g.fee),
   currency: g.currency,
+  topics: g.topics,
+  homework: g.homework,
+  notes: g.notes,
 });
 
 /**
@@ -74,6 +84,9 @@ export function GroupDrawer({
       finalExamDate: draft.finalExamDate || null,
       fee: Number(draft.fee.replace(/\D/g, "")) || 0,
       currency: draft.currency,
+      topics: draft.topics,
+      homework: draft.homework,
+      notes: draft.notes,
     };
     if (group) updateGroup(group.id, payload);
     else addGroup(payload);
@@ -191,6 +204,39 @@ export function GroupDrawer({
               </Select>
             </div>
           </div>
+        </Field>
+
+        <div>
+          <span className="block mb-2 text-[13px] font-semibold text-ink">
+            Main topics
+          </span>
+          <ListEditor
+            items={draft.topics}
+            onChange={(topics) => set("topics", topics)}
+            placeholder="Add a topic and press Enter"
+            emptyHint="What this course covers, in the order you teach it."
+          />
+        </div>
+
+        <div>
+          <span className="block mb-2 text-[13px] font-semibold text-ink">
+            Homework
+          </span>
+          <ListEditor
+            items={draft.homework}
+            onChange={(homework) => set("homework", homework)}
+            placeholder="Add homework and press Enter"
+            emptyHint="Work the class goes through. Shape it however suits you."
+          />
+        </div>
+
+        <Field label="Notes" hint="Anything else worth remembering.">
+          <Textarea
+            rows={3}
+            value={draft.notes}
+            onChange={(e) => set("notes", e.target.value)}
+            placeholder="Books used, room, parents to keep informed…"
+          />
         </Field>
 
         {draft.startDate && draft.endDate && draft.endDate < draft.startDate ? (

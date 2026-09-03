@@ -16,22 +16,31 @@ import {
 import { useStore } from "@/lib/store/StoreProvider";
 import { AuthScreen, Splash } from "@/components/AuthScreen";
 
+/**
+ * Four entries, and that is the whole app.
+ *
+ * Sending, nudges and message history all belong to students, so they sit
+ * behind the Students entry rather than crowding the sidebar.
+ */
 const NAV = [
-  { href: "/dashboard", label: "Today", Icon: IconDashboard },
-  { href: "/send", label: "Send now", Icon: IconSend },
-  { href: "/students", label: "Students", Icon: IconStudents },
-  { href: "/nudges", label: "Nudges", Icon: IconNudges },
-  { href: "/messages", label: "Messages", Icon: IconMessages },
   { href: "/assistant", label: "Assistant", Icon: IconAssistant },
+  { href: "/courses", label: "Courses", Icon: IconNudges },
+  { href: "/students", label: "Students", Icon: IconStudents },
+  { href: "/settings", label: "Settings", Icon: IconSettings },
 ];
 
-/** Five fit comfortably on a phone; Settings lives in the mobile header. */
-const MOBILE_NAV = NAV.filter((n) => n.href !== "/messages");
+/** Anything under Students keeps the Students entry lit. */
+const STUDENT_PAGES = ["/students", "/send", "/nudges", "/messages"];
+
+const MOBILE_NAV = NAV;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { db, ready, signedIn } = useStore();
-  const isActive = (href: string) => pathname.startsWith(href);
+  const isActive = (href: string) =>
+    href === "/students"
+      ? STUDENT_PAGES.some((p) => pathname.startsWith(p))
+      : pathname.startsWith(href);
 
   if (!ready) return <Splash />;
   if (!signedIn) return <AuthScreen />;
@@ -73,19 +82,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Link>
           ))}
         </nav>
-
-        <Link
-          href="/settings"
-          className={cx(
-            "flex items-center gap-3 h-11 px-3.5 rounded-[16px] text-[14px] transition-colors mb-2",
-            isActive("/settings")
-              ? "bg-paper text-forest font-bold"
-              : "text-muted hover:text-forest hover:bg-paper/60",
-          )}
-        >
-          <IconSettings className="w-[19px] h-[19px] shrink-0 text-faint" />
-          Settings
-        </Link>
 
         {/* Status — the two facts that decide whether anything actually sends. */}
         <div className="card-mint px-4 py-3.5">

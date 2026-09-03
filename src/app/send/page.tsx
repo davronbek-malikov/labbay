@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Page } from "@/components/AppShell";
+import { StudentsNav } from "@/components/students/StudentsNav";
 import { Badge, Button, Field, Select, Textarea, Toggle, cx } from "@/components/ui";
 import { useStore } from "@/lib/store/StoreProvider";
 import { composeFor, isQuietHour } from "@/lib/engine/send";
@@ -78,6 +79,8 @@ export default function SendPage() {
       title="Send now"
       subtitle="Write it once. Press send."
     >
+      <StudentsNav />
+
       <div className="grid lg:grid-cols-[1fr_400px] gap-6 items-start">
         <div className="card p-6 md:p-7 space-y-6">
           <Field label="Message">
