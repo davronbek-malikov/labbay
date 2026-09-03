@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase/client";
 import {
   fromGroup,
+  fromTransaction,
   fromMessage,
   fromPayment,
   fromNudge,
@@ -8,12 +9,14 @@ import {
   fromStudent,
   toGroup,
   toMessage,
+  toTransaction,
   toNudge,
   toPayment,
   toSettings,
   toStudent,
   type GroupRow,
   type MessageRow,
+  type TransactionRow,
   type NudgeRow,
   type PaymentRow,
   type SettingsRow,
@@ -22,6 +25,7 @@ import {
 import type {
   Database,
   Group,
+  Transaction,
   Message,
   Nudge,
   Payment,
@@ -39,11 +43,24 @@ export class SupabaseStore {
   async load(): Promise<Database> {
     const db = supabase();
 
-    const [profile, groups, payments, students, nudges, messages, settings] =
+    const [
+      profile,
+      groups,
+      payments,
+      transactions,
+      students,
+      nudges,
+      messages,
+      settings,
+    ] =
       await Promise.all([
       db.from("profiles").select("name").eq("id", this.teacherId).maybeSingle(),
       db.from("groups").select("*").order("created_at", { ascending: false }),
       db.from("payments").select("*").order("paid_at", { ascending: false }),
+      db
+        .from("transactions")
+        .select("*")
+        .order("occurred_at", { ascending: false }),
       db.from("students").select("*").order("created_at", { ascending: false }),
       db.from("nudges").select("*").order("created_at", { ascending: false }),
       db
@@ -75,6 +92,9 @@ export class SupabaseStore {
     return {
       groups: ((groups.data ?? []) as GroupRow[]).map(toGroup),
       payments: ((payments.data ?? []) as PaymentRow[]).map(toPayment),
+      transactions: ((transactions.data ?? []) as TransactionRow[]).map(
+        toTransaction,
+      ),
       students: ((students.data ?? []) as StudentRow[]).map(toStudent),
       nudges: ((nudges.data ?? []) as NudgeRow[]).map(toNudge),
       messages: ((messages.data ?? []) as MessageRow[]).map(toMessage),
@@ -104,6 +124,18 @@ export class SupabaseStore {
 
   async removeGroup(id: string): Promise<void> {
     await supabase().from("groups").delete().eq("id", id);
+  }
+
+  async addTransaction(
+    t: Omit<Transaction, "id" | "createdAt">,
+  ): Promise<void> {
+    await supabase()
+      .from("transactions")
+      .insert({ ...fromTransaction(t), teacher_id: this.teacherId });
+  }
+
+  async removeTransaction(id: string): Promise<void> {
+    await supabase().from("transactions").delete().eq("id", id);
   }
 
   async addPayment(
@@ -226,6 +258,7 @@ export class SupabaseStore {
     const client = supabase();
     await client.from("messages").delete().eq("teacher_id", this.teacherId);
     await client.from("payments").delete().eq("teacher_id", this.teacherId);
+    await client.from("transactions").delete().eq("teacher_id", this.teacherId);
     await client.from("nudges").delete().eq("teacher_id", this.teacherId);
     await client.from("students").delete().eq("teacher_id", this.teacherId);
     await client.from("groups").delete().eq("teacher_id", this.teacherId);

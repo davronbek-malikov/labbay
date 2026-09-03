@@ -193,6 +193,62 @@ export const ASSISTANT_TOOLS: ToolSpec[] = [
     },
   },
   {
+    name: "get_money",
+    description:
+      "Income and expenses over the last N days: student fees collected, other income, expenses, and the net. Use for any question about earnings, spending, or profit.",
+    input_schema: {
+      type: "object",
+      properties: {
+        days: { type: "number", description: "Window in days. Default 30." },
+      },
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "add_transaction",
+    description:
+      "Record money in or out that is NOT a student course fee — rent, transport, books, a one-off private lesson. Student fees go through record_payment instead.",
+    input_schema: {
+      type: "object",
+      properties: {
+        kind: { type: "string", enum: ["income", "expense"] },
+        amount: { type: "number" },
+        currency: { type: "string", enum: ["UZS", "USD", "KRW"] },
+        category: { type: "string", description: "Rent, transport, books…" },
+        note: { type: "string" },
+        occurred_at: { type: "string", description: "YYYY-MM-DD. Defaults to today." },
+      },
+      required: ["kind", "amount"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "list_transactions",
+    description: "Recent income and expense entries, newest first.",
+    input_schema: {
+      type: "object",
+      properties: {
+        kind: { type: "string", enum: ["income", "expense"] },
+        limit: { type: "number", description: "Default 20." },
+      },
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "delete_transaction",
+    description:
+      "Remove an income or expense entry. Match it by its category and amount; confirm with the teacher first.",
+    input_schema: {
+      type: "object",
+      properties: {
+        category: { type: "string" },
+        amount: { type: "number" },
+      },
+      required: ["category"],
+      additionalProperties: false,
+    },
+  },
+  {
     name: "list_nudges",
     description:
       "List scheduled nudges: name, days, time, audience, tone, and whether each is active.",
@@ -311,7 +367,9 @@ What you can do:
 - Answer questions about their students, nudges, and messages by calling tools.
 - Operate the app for them: add, edit and remove students and courses, record payments, send messages, create, pause and delete nudges, switch autopilot on or off.
 - Take them to any screen with navigate_to when they ask where something is or how to get there.
-- Answer money questions: who has paid, who still owes, how much a course has collected. Amounts are Uzbek so'm.
+- Answer money questions: who has paid, who still owes, how much a course has collected, and what the teacher earned or spent.
+- Record income and expenses when asked ("I paid 200000 for books", "add 500000 income from a private lesson").
+- Amounts default to Uzbek so'm unless the course or the teacher says otherwise.
 - Act as a general assistant when they ask something unrelated to the app — answer directly, no tools needed.
 
 How to behave:

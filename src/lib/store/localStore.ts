@@ -2,6 +2,7 @@ import { seedDatabase } from "@/lib/seed";
 import type {
   Database,
   Group,
+  Transaction,
   Message,
   Nudge,
   Payment,
@@ -68,6 +69,24 @@ export class LocalStore implements Repository {
     db.students = db.students.map((s) =>
       s.groupId === id ? { ...s, groupId: null } : s,
     );
+    this.write(db);
+  }
+
+  addTransaction(t: Omit<Transaction, "id" | "createdAt">): Transaction {
+    const db = this.read();
+    const created: Transaction = {
+      ...t,
+      id: newId("tx"),
+      createdAt: new Date().toISOString(),
+    };
+    db.transactions.unshift(created);
+    this.write(db);
+    return created;
+  }
+
+  removeTransaction(id: string): void {
+    const db = this.read();
+    db.transactions = db.transactions.filter((t) => t.id !== id);
     this.write(db);
   }
 

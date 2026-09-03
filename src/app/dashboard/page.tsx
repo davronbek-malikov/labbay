@@ -8,6 +8,8 @@ import { IconArrowRight } from "@/components/icons";
 import { useStore } from "@/lib/store/StoreProvider";
 import {
   audienceOf,
+  financeSummary,
+  money,
   dateTime,
   groupNameOf,
   initials,
@@ -58,6 +60,14 @@ export default function DashboardPage() {
     new Set(nudges.filter((n) => n.status === "active").flatMap((n) => n.days)),
   );
   const today = weekdayIndex(new Date());
+
+  const finance = financeSummary(db, 30);
+  const totals = finance.byCurrency[finance.primary] ?? {
+    income: 0,
+    expense: 0,
+    net: 0,
+    feeIncome: 0,
+  };
 
   const recent = [...messages]
     .filter((m) => m.status !== "queued")
@@ -119,6 +129,40 @@ export default function DashboardPage() {
           label="Gone quiet"
           tone={quiet.length > 0 ? "clay" : "neutral"}
         />
+      </section>
+
+      {/* Money — the other half of running a teaching business. */}
+      <section className="mt-10">
+        <div className="flex items-baseline justify-between mb-3">
+          <h2 className="label">Last 30 days</h2>
+          <span className="text-[12px] text-faint">
+            {finance.mixed
+              ? `${finance.primary} only — ask the assistant for the rest`
+              : "ask the assistant to add income or an expense"}
+          </span>
+        </div>
+        <div className="grid sm:grid-cols-3 gap-px bg-line border border-line rounded-[20px] overflow-hidden">
+          <div className="bg-paper px-5 py-5">
+            <p className="figure text-[24px] text-forest">
+              {money(totals.income, finance.primary)}
+            </p>
+            <p className="label mt-2">In</p>
+          </div>
+          <div className="bg-paper px-5 py-5">
+            <p className="figure text-[24px] text-clay">
+              {money(totals.expense, finance.primary)}
+            </p>
+            <p className="label mt-2">Out</p>
+          </div>
+          <div className="bg-paper px-5 py-5">
+            <p
+              className={`figure text-[24px] ${totals.net >= 0 ? "text-accent" : "text-clay"}`}
+            >
+              {money(totals.net, finance.primary)}
+            </p>
+            <p className="label mt-2">Net</p>
+          </div>
+        </div>
       </section>
 
       {/* The week — the signature object, at full size. */}
