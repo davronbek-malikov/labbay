@@ -1,6 +1,7 @@
 import type {
   Database,
   Group,
+  Transaction,
   Message,
   Nudge,
   Payment,
@@ -477,9 +478,17 @@ const payments: Payment[] = PAY.map(([studentId, amount, ago], i) => ({
   createdAt: iso(ago),
 }));
 
+const transactions: Transaction[] = [
+  { id: "tx_rent", kind: "expense", amount: 1_500_000, currency: "UZS", category: "Rent", note: "Classroom", occurredAt: dateOnly(12), createdAt: iso(12) },
+  { id: "tx_books", kind: "expense", amount: 320_000, currency: "UZS", category: "Books", note: "IELTS practice sets", occurredAt: dateOnly(20), createdAt: iso(20) },
+  { id: "tx_travel", kind: "expense", amount: 90_000, currency: "UZS", category: "Transport", note: "", occurredAt: dateOnly(3), createdAt: iso(3) },
+  { id: "tx_extra", kind: "income", amount: 400_000, currency: "UZS", category: "Private lesson", note: "One-off exam coaching", occurredAt: dateOnly(6), createdAt: iso(6) },
+];
+
 export const seedDatabase: Database = {
   groups,
   payments,
+  transactions,
   students,
   nudges,
   messages,

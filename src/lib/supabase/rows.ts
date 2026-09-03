@@ -1,6 +1,8 @@
 import type {
   Audience,
   Currency,
+  Transaction,
+  TransactionKind,
   DeliveryMode,
   Group,
   GroupKind,
@@ -184,6 +186,42 @@ export function fromPayment(
   if (p.amount !== undefined) row.amount = p.amount;
   if (p.paidAt !== undefined) row.paid_at = p.paidAt;
   if (p.note !== undefined) row.note = p.note;
+  return row;
+}
+
+export interface TransactionRow {
+  id: string;
+  teacher_id: string;
+  kind: TransactionKind;
+  amount: number;
+  currency: Currency;
+  category: string;
+  note: string;
+  occurred_at: string;
+  created_at: string;
+}
+
+export const toTransaction = (r: TransactionRow): Transaction => ({
+  id: r.id,
+  kind: r.kind,
+  amount: Number(r.amount),
+  currency: r.currency ?? "UZS",
+  category: r.category ?? "",
+  note: r.note ?? "",
+  occurredAt: r.occurred_at,
+  createdAt: r.created_at,
+});
+
+export function fromTransaction(
+  p: Partial<Transaction>,
+): Partial<Omit<TransactionRow, "id" | "teacher_id" | "created_at">> {
+  const row: Record<string, unknown> = {};
+  if (p.kind !== undefined) row.kind = p.kind;
+  if (p.amount !== undefined) row.amount = p.amount;
+  if (p.currency !== undefined) row.currency = p.currency;
+  if (p.category !== undefined) row.category = p.category;
+  if (p.note !== undefined) row.note = p.note;
+  if (p.occurredAt !== undefined) row.occurred_at = p.occurredAt;
   return row;
 }
 

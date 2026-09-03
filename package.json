@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "check:engine": "tsx scripts/engine.check.ts"
+    "check:engine": "tsx scripts/engine.check.ts",
+    "check:tools": "tsx scripts/tools.check.ts",
+    "check": "npm run check:engine && npm run check:tools"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",

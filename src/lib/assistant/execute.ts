@@ -1,5 +1,6 @@
 import {
   audienceOf,
+  financeSummary,
   groupNameOf,
   money,
   paymentsOf,
@@ -18,6 +19,7 @@ import type {
   Nudge,
   Payment,
   Student,
+  Transaction,
   Tone,
 } from "@/lib/types";
 
@@ -38,6 +40,8 @@ export interface ToolDeps {
   updateGroup(id: string, patch: Partial<Group>): void;
   removeGroup(id: string): void;
   addPayment(p: Omit<Payment, "id" | "createdAt">): void;
+  addTransaction(t: Omit<Transaction, "id" | "createdAt">): void;
+  removeTransaction(id: string): void;
   removeNudge(id: string): void;
   updateSettings(patch: Partial<Database["settings"]>): void;
 }
@@ -417,6 +421,92 @@ export function executeTool(
           note: p.note || undefined,
         })),
       });
+    }
+
+    case "get_money": {
+      const days = Math.max(1, Math.min(num(input.days) ?? 30, 365));
+      const f = financeSummary(db, days);
+
+      // One number across currencies would be nonsense, so report each.
+      const perCurrency = Object.entries(f.byCurrency).map(([code, t]) => ({
+        currency: code,
+        student_fees: money(t.feeIncome, code as Currency),
+        other_income: money(t.income - t.feeIncome, code as Currency),
+        total_income: money(t.income, code as Currency),
+        expenses: money(t.expense, code as Currency),
+        net: money(t.net, code as Currency),
+      }));
+
+      return ok({
+        window_days: days,
+        currencies: perCurrency.length ? perCurrency : [{ currency: "UZS", net: money(0) }],
+        mixed_currencies: f.mixed,
+      });
+    }
+
+    case "add_transaction": {
+      const kind = str(input.kind);
+      const amount = num(input.amount);
+      if (kind !== "income" && kind !== "expense")
+        return fail('kind must be "income" or "expense".');
+      if (!amount || amount <= 0) return fail("amount must be a positive number.");
+
+      const currency = (str(input.currency) ?? "UZS") as Transaction["currency"];
+      const category = str(input.category) ?? (kind === "income" ? "Income" : "Expense");
+      const occurredAt = str(input.occurred_at) ?? new Date().toISOString().slice(0, 10);
+
+      deps.addTransaction({
+        kind,
+        amount,
+        currency,
+        category,
+        note: str(input.note) ?? "",
+        occurredAt,
+      });
+      return ok(
+        { recorded: true, kind, amount: money(amount, currency), category, occurredAt },
+        `Recorded ${kind} ${money(amount, currency)} — ${category}`,
+      );
+    }
+
+    case "list_transactions": {
+      const kind = str(input.kind);
+      const limit = Math.min(num(input.limit) ?? 20, 60);
+      let list = [...db.transactions].sort((a, b) =>
+        a.occurredAt < b.occurredAt ? 1 : -1,
+      );
+      if (kind) list = list.filter((t) => t.kind === kind);
+      return ok({
+        count: list.length,
+        transactions: list.slice(0, limit).map((t) => ({
+          kind: t.kind,
+          amount: money(t.amount, t.currency),
+          category: t.category,
+          note: t.note || undefined,
+          when: t.occurredAt,
+        })),
+      });
+    }
+
+    case "delete_transaction": {
+      const category = str(input.category);
+      if (!category) return fail("category is required.");
+      const amount = num(input.amount);
+      const q = category.toLowerCase();
+
+      const match = db.transactions.find(
+        (t) =>
+          t.category.toLowerCase().includes(q) &&
+          (amount === undefined || Math.abs(t.amount - amount) < 0.01),
+      );
+      if (!match)
+        return fail(`No income or expense matched "${category}".`);
+
+      deps.removeTransaction(match.id);
+      return ok(
+        { deleted: true, category: match.category, amount: money(match.amount, match.currency) },
+        `Deleted ${match.kind} ${money(match.amount, match.currency)} — ${match.category}`,
+      );
     }
 
     case "list_nudges":

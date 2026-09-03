@@ -37,6 +37,22 @@ export interface Group {
   createdAt: string;
 }
 
+/** Money in or out that is not a student's course fee. */
+export type TransactionKind = "income" | "expense";
+
+export interface Transaction {
+  id: string;
+  kind: TransactionKind;
+  amount: number;
+  currency: Currency;
+  /** Free text: rent, transport, books, private lesson… */
+  category: string;
+  note: string;
+  /** ISO date (YYYY-MM-DD). */
+  occurredAt: string;
+  createdAt: string;
+}
+
 /** One payment a student made towards their course fee. */
 export interface Payment {
   id: string;
@@ -132,6 +148,7 @@ export interface Settings {
 export interface Database {
   groups: Group[];
   payments: Payment[];
+  transactions: Transaction[];
   students: Student[];
   nudges: Nudge[];
   messages: Message[];

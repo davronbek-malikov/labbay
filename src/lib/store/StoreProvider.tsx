@@ -13,6 +13,7 @@ import { seedDatabase } from "@/lib/seed";
 import type {
   Database,
   Group,
+  Transaction,
   Message,
   Nudge,
   Payment,
@@ -51,6 +52,8 @@ interface StoreValue {
   updateGroup(id: string, patch: Partial<Group>): void;
   removeGroup(id: string): void;
   addPayment(p: Omit<Payment, "id" | "createdAt">): void;
+  addTransaction(t: Omit<Transaction, "id" | "createdAt">): void;
+  removeTransaction(id: string): void;
   removePayment(id: string): void;
   addStudent(s: Omit<Student, "id" | "createdAt" | "lastContactedAt">): void;
   updateStudent(id: string, patch: Partial<Student>): void;
@@ -71,6 +74,7 @@ interface StoreValue {
 const EMPTY: Database = {
   groups: [],
   payments: [],
+  transactions: [],
   students: [],
   nudges: [],
   messages: [],
@@ -164,6 +168,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "payments" },
+        () => void reload(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "transactions" },
         () => void reload(),
       )
       .on(
@@ -351,6 +360,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         write(
           () => cloud!.addPayment(p),
           () => localStore.addPayment(p),
+        ),
+      addTransaction: (t) =>
+        write(
+          () => cloud!.addTransaction(t),
+          () => localStore.addTransaction(t),
+        ),
+      removeTransaction: (id) =>
+        write(
+          () => cloud!.removeTransaction(id),
+          () => localStore.removeTransaction(id),
         ),
       removePayment: (id) =>
         write(
