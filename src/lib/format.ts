@@ -149,6 +149,40 @@ export function financeSummary(
   return { byCurrency, primary, mixed: entries.length > 1 };
 }
 
+/** How far ahead an exam starts being worth shouting about. */
+export const EXAM_ALERT_DAYS = 14;
+
+export interface ExamAlert {
+  group: Group;
+  students: Student[];
+  daysAway: number;
+}
+
+/**
+ * Courses whose exam is close and that the teacher has not confirmed seeing.
+ *
+ * Acknowledgement is stored as the date that was acknowledged, so moving the
+ * exam raises the alert again rather than staying silently dismissed.
+ */
+export function examAlerts(
+  db: Pick<Database, "groups" | "students">,
+  withinDays = EXAM_ALERT_DAYS,
+): ExamAlert[] {
+  return db.groups
+    .filter((g) => {
+      if (!g.finalExamDate) return false;
+      if (g.examAckDate === g.finalExamDate) return false;
+      const days = daysUntil(g.finalExamDate);
+      return days !== null && days >= 0 && days <= withinDays;
+    })
+    .map((g) => ({
+      group: g,
+      students: db.students.filter((s) => s.groupId === g.id),
+      daysAway: daysUntil(g.finalExamDate)!,
+    }))
+    .sort((a, b) => a.daysAway - b.daysAway);
+}
+
 export function paymentsOf(studentId: string, payments: Payment[]): Payment[] {
   return payments
     .filter((p) => p.studentId === studentId)

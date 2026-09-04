@@ -51,6 +51,8 @@ interface StoreValue {
   addGroup(g: Omit<Group, "id" | "createdAt">): void;
   updateGroup(id: string, patch: Partial<Group>): void;
   removeGroup(id: string): void;
+  /** Confirms the teacher has seen this course's exam date. */
+  acknowledgeExam(groupId: string, examDate: string): void;
   addPayment(p: Omit<Payment, "id" | "createdAt">): void;
   addTransaction(t: Omit<Transaction, "id" | "createdAt">): void;
   removeTransaction(id: string): void;
@@ -355,6 +357,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         write(
           () => cloud!.removeGroup(id),
           () => localStore.removeGroup(id),
+        ),
+      acknowledgeExam: (groupId, examDate) =>
+        write(
+          () => cloud!.updateGroup(groupId, { examAckDate: examDate }),
+          () => localStore.updateGroup(groupId, { examAckDate: examDate }),
         ),
       addPayment: (p) =>
         write(

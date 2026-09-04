@@ -28,6 +28,12 @@ export interface Group {
   /** What one student pays for the whole course. */
   fee: number;
   currency: Currency;
+  /**
+   * The exam date the teacher has confirmed seeing. When it differs from
+   * `finalExamDate` the alert is shown, so closing it is not the same as
+   * dealing with it.
+   */
+  examAckDate: string | null;
   /** What the course covers. Every teacher shapes this differently. */
   topics: string[];
   /** Homework the class works through. */
