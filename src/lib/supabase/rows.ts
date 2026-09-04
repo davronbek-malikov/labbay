@@ -1,5 +1,6 @@
 import type {
   Audience,
+  Level,
   Currency,
   Transaction,
   TransactionKind,
@@ -33,6 +34,7 @@ export interface GroupRow {
   fee: number;
   currency: Currency;
   exam_ack_date: string | null;
+  syllabus: Level[] | null;
   topics: string[] | null;
   homework: string[] | null;
   notes: string | null;
@@ -57,6 +59,8 @@ export interface StudentRow {
   subject: string;
   group_id: string | null;
   level: string;
+  level_id: string | null;
+  fields: Record<string, string> | null;
   ai_notes: string;
   status: StudentStatus;
   last_contacted_at: string | null;
@@ -117,6 +121,8 @@ export const toStudent = (r: StudentRow): Student => ({
   subject: r.subject,
   groupId: r.group_id,
   level: r.level,
+  levelId: r.level_id ?? null,
+  fields: r.fields ?? {},
   aiNotes: r.ai_notes,
   status: r.status,
   lastContactedAt: r.last_contacted_at,
@@ -132,6 +138,8 @@ export function fromStudent(
   if (p.subject !== undefined) row.subject = p.subject;
   if (p.groupId !== undefined) row.group_id = p.groupId;
   if (p.level !== undefined) row.level = p.level;
+  if (p.levelId !== undefined) row.level_id = p.levelId;
+  if (p.fields !== undefined) row.fields = p.fields;
   if (p.aiNotes !== undefined) row.ai_notes = p.aiNotes;
   if (p.status !== undefined) row.status = p.status;
   if (p.lastContactedAt !== undefined) row.last_contacted_at = p.lastContactedAt;
@@ -148,6 +156,7 @@ export const toGroup = (r: GroupRow): Group => ({
   fee: Number(r.fee),
   currency: r.currency ?? "UZS",
   examAckDate: r.exam_ack_date ?? null,
+  syllabus: r.syllabus ?? [],
   topics: r.topics ?? [],
   homework: r.homework ?? [],
   notes: r.notes ?? "",
@@ -166,6 +175,7 @@ export function fromGroup(
   if (p.fee !== undefined) row.fee = p.fee;
   if (p.currency !== undefined) row.currency = p.currency;
   if (p.examAckDate !== undefined) row.exam_ack_date = p.examAckDate;
+  if (p.syllabus !== undefined) row.syllabus = p.syllabus;
   if (p.topics !== undefined) row.topics = p.topics;
   if (p.homework !== undefined) row.homework = p.homework;
   if (p.notes !== undefined) row.notes = p.notes;
