@@ -8,7 +8,14 @@
 import { seedDatabase } from "../src/lib/seed";
 import { executeTool, type ToolDeps } from "../src/lib/assistant/execute";
 import { examAlerts } from "../src/lib/format";
-import type { Database, Group, Payment, Student, Transaction } from "../src/lib/types";
+import type {
+  Database,
+  Group,
+  Level,
+  Payment,
+  Student,
+  Transaction,
+} from "../src/lib/types";
 
 const clone = (d: Database): Database => JSON.parse(JSON.stringify(d));
 
@@ -245,7 +252,93 @@ check(
 const ackGhost = run(examDb, "acknowledge_exam", { course: "No Such Course" });
 check("acknowledge_exam refuses an unknown course", ackGhost.out.isError);
 
+
+/* --------------------------------------------------------------- syllabus */
+
+console.log("\n7. Syllabus and student fields");
+
+const sylDb = clone(seedDatabase);
+const course = sylDb.groups[0];
+
+const emptySyl = run(sylDb, "get_syllabus", { course: course.name });
+check("get_syllabus works on an empty plan", !emptySyl.out.isError, emptySyl.out.result);
+
+const setSyl = run(sylDb, "set_syllabus", {
+  course: course.name,
+  levels: [
+    {
+      name: "A1",
+      lessons: [
+        { title: "Lesson 1", topics: ["Greetings", "To be"], homework: ["Unit 1"] },
+        { title: "Lesson 2", topics: ["Numbers"], homework: [] },
+      ],
+    },
+    { name: "A2", lessons: [{ title: "Lesson 1", topics: ["Past simple"] }] },
+  ],
+});
+check("set_syllabus succeeds", !setSyl.out.isError, setSyl.out.result);
+check("set_syllabus counts levels", setSyl.data.levels === 2);
+check("set_syllabus counts lessons", setSyl.data.lessons === 3);
+
+const written = (setSyl.calls["updateGroup"] ?? [])[0] as [string, { syllabus: Level[] }];
+const levels = written[1].syllabus;
+check("every level gets an id", levels.every((l) => Boolean(l.id)));
+check("every lesson gets an id", levels.every((l) => l.lessons.every((x) => Boolean(x.id))));
+check("topics survive", levels[0].lessons[0].topics.length === 2);
+check("a missing homework list becomes empty, not undefined", Array.isArray(levels[0].lessons[1].homework));
+
+// Ids must be stable across an edit, or students pointing at a level break.
+const keepDb = clone(sylDb);
+keepDb.groups[0].syllabus = levels;
+const again = run(keepDb, "set_syllabus", {
+  course: course.name,
+  levels: [{ name: "A1", lessons: [{ title: "Lesson 1", topics: ["Changed"] }] }],
+});
+const rewritten = ((again.calls["updateGroup"] ?? [])[0] as [string, { syllabus: Level[] }])[1].syllabus;
+check("a kept level keeps its id", rewritten[0].id === levels[0].id);
+check("a kept lesson keeps its id", rewritten[0].lessons[0].id === levels[0].lessons[0].id);
+
+const badSyl = run(sylDb, "set_syllabus", { course: course.name, levels: "nope" });
+check("set_syllabus rejects a non-list", badSyl.out.isError);
+
+const ghostSyl = run(sylDb, "get_syllabus", { course: "Nothing" });
+check("get_syllabus refuses an unknown course", ghostSyl.out.isError);
+
+/* ---------------------------------------------------------- student fields */
+
+const fieldsDb = clone(seedDatabase);
+const someone = fieldsDb.students[0];
+
+const setF = run(fieldsDb, "set_student_fields", {
+  name: someone.name,
+  fields: { School: "Lyceum 3", "Target band": "7.0" },
+});
+check("set_student_fields succeeds", !setF.out.isError, setF.out.result);
+const savedFields = ((setF.calls["updateStudent"] ?? [])[0] as [string, { fields: Record<string, string> }])[1].fields;
+check("both fields are stored", savedFields.School === "Lyceum 3" && savedFields["Target band"] === "7.0");
+
+const withExisting = clone(fieldsDb);
+withExisting.students[0].fields = { School: "Old", Keep: "yes" };
+const merged = run(withExisting, "set_student_fields", {
+  name: someone.name,
+  fields: { School: "New" },
+});
+const mergedFields = ((merged.calls["updateStudent"] ?? [])[0] as [string, { fields: Record<string, string> }])[1].fields;
+check("an untouched field is kept", mergedFields.Keep === "yes");
+check("a named field is replaced", mergedFields.School === "New");
+
+const cleared = run(withExisting, "set_student_fields", {
+  name: someone.name,
+  fields: { Keep: "" },
+});
+const clearedFields = ((cleared.calls["updateStudent"] ?? [])[0] as [string, { fields: Record<string, string> }])[1].fields;
+check("an empty value removes the field", !("Keep" in clearedFields));
+
+const badF = run(fieldsDb, "set_student_fields", { name: someone.name, fields: "nope" });
+check("set_student_fields rejects a non-object", badF.out.isError);
+
 /* ------------------------------------------------------------------ done */
+
 
 
 const payments: Payment[] = db.payments;

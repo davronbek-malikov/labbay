@@ -5,6 +5,7 @@ import { Page } from "@/components/AppShell";
 import { StudentDrawer } from "@/components/students/StudentDrawer";
 import { GroupDrawer } from "@/components/students/GroupDrawer";
 import { PaymentsPanel } from "@/components/students/PaymentsPanel";
+import { SyllabusEditor } from "@/components/students/SyllabusEditor";
 import { Badge, Button, EmptyState, Input, cx } from "@/components/ui";
 import { IconSearch } from "@/components/icons";
 import { useStore } from "@/lib/store/StoreProvider";
@@ -143,6 +144,8 @@ export default function CoursesPage() {
             assistant.
           </p>
         )}
+
+        <SyllabusEditor group={live} />
 
         <p className="label mt-7 mb-2 px-1">Students · tap one for payments</p>
         {members.length === 0 ? (

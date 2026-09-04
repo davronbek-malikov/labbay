@@ -13,6 +13,24 @@ export type Tone = "warm" | "direct" | "playful" | "formal";
 
 export type Language = "uz" | "ru" | "en";
 
+/** One lesson: what it covers and what it sets. */
+export interface Lesson {
+  id: string;
+  title: string;
+  topics: string[];
+  homework: string[];
+}
+
+/**
+ * A stage of a course. Teachers name these differently — "A1", "Beginner",
+ * "Unit 3", "Term 1" — so the name is free text and can be changed any time.
+ */
+export interface Level {
+  id: string;
+  name: string;
+  lessons: Lesson[];
+}
+
 /**
  * A course. Both kinds carry the same facts — what it is called, when it runs,
  * when the final exam is, and what it costs.
@@ -34,6 +52,8 @@ export interface Group {
    * dealing with it.
    */
   examAckDate: string | null;
+  /** Levels, each holding its lessons. The shape every teacher fills in. */
+  syllabus: Level[];
   /** What the course covers. Every teacher shapes this differently. */
   topics: string[];
   /** Homework the class works through. */
@@ -79,6 +99,13 @@ export interface Student {
   /** The course they are on. Null only while being moved between courses. */
   groupId: string | null;
   level: string;
+  /** Which level of the course syllabus they are working through. */
+  levelId: string | null;
+  /**
+   * Anything this teacher wants to track — parent's phone, school, target
+   * band. Free-form so a maths tutor and a language tutor can both use it.
+   */
+  fields: Record<string, string>;
   /** Free-text context the agent conditions on, e.g. "shy, needs gentle tone". */
   aiNotes: string;
   status: StudentStatus;

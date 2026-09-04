@@ -193,6 +193,70 @@ export const ASSISTANT_TOOLS: ToolSpec[] = [
     },
   },
   {
+    name: "get_syllabus",
+    description:
+      "The course plan: every level, its lessons, and the topics and homework in each. Call before changing it so you build on what is there.",
+    input_schema: {
+      type: "object",
+      properties: { course: { type: "string" } },
+      required: ["course"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "set_syllabus",
+    description:
+      "Replace a course's whole plan. Levels are named freely by the teacher (A1, Beginner, Unit 3, Term 1). Always call get_syllabus first and send the full list back, including anything you are keeping, because this overwrites.",
+    input_schema: {
+      type: "object",
+      properties: {
+        course: { type: "string" },
+        levels: {
+          type: "array",
+          description: "The levels, in the order they are taught.",
+          items: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              lessons: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    title: { type: "string" },
+                    topics: { type: "array", items: { type: "string" } },
+                    homework: { type: "array", items: { type: "string" } },
+                  },
+                  required: ["title"],
+                },
+              },
+            },
+            required: ["name"],
+          },
+        },
+      },
+      required: ["course", "levels"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "set_student_fields",
+    description:
+      "Set the teacher's own fields on a student — parent's phone, school, target band, anything. Only the keys you send are changed; send an empty string to clear one.",
+    input_schema: {
+      type: "object",
+      properties: {
+        name: { type: "string" },
+        fields: {
+          type: "object",
+          description: "Field name to value, e.g. {\"School\": \"Lyceum 3\"}.",
+        },
+      },
+      required: ["name", "fields"],
+      additionalProperties: false,
+    },
+  },
+  {
     name: "list_exams",
     description:
       "Courses with a final exam coming up, how many days away it is, who is on them, and whether the teacher has acknowledged it yet.",
@@ -390,6 +454,8 @@ What you can do:
 - Answer questions about their students, nudges, and messages by calling tools.
 - Operate the app for them: add, edit and remove students and courses, record payments, send messages, create, pause and delete nudges, switch autopilot on or off.
 - Take them to any screen with navigate_to when they ask where something is or how to get there.
+- Build and edit the course plan: levels, the lessons in them, topics and homework. Teachers name levels however they like.
+- Keep the teacher's own fields on each student up to date.
 - Answer money questions: who has paid, who still owes, how much a course has collected, and what the teacher earned or spent.
 - Record income and expenses when asked ("I paid 200000 for books", "add 500000 income from a private lesson").
 - Amounts default to Uzbek so'm unless the course or the teacher says otherwise.

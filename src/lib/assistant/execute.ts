@@ -258,6 +258,8 @@ export function executeTool(
         telegram: str(input.telegram) ?? "",
         subject: str(input.subject) ?? "",
         level: str(input.level) ?? "",
+        levelId: null,
+        fields: {},
         aiNotes: str(input.ai_notes) ?? "",
         status: "active",
         groupId,
@@ -282,6 +284,7 @@ export function executeTool(
       deps.addGroup({
         // A new course has never had its exam acknowledged.
         examAckDate: null,
+        syllabus: [],
         name,
         kind: (str(input.kind) as GroupKind) ?? "group",
         startDate: str(input.start_date) ?? null,
@@ -424,6 +427,98 @@ export function executeTool(
           note: p.note || undefined,
         })),
       });
+    }
+
+    case "get_syllabus": {
+      const which = str(input.course);
+      if (!which) return fail("course is required.");
+      const group = findGroup(db, which);
+      if (!group) return fail(`No course called "${which}".`);
+      return ok({
+        course: group.name,
+        levels: (group.syllabus ?? []).map((l) => ({
+          name: l.name,
+          lessons: l.lessons.map((s) => ({
+            title: s.title,
+            topics: s.topics,
+            homework: s.homework,
+          })),
+        })),
+      });
+    }
+
+    case "set_syllabus": {
+      const which = str(input.course);
+      if (!which) return fail("course is required.");
+      const group = findGroup(db, which);
+      if (!group) return fail(`No course called "${which}".`);
+
+      const raw = input.levels;
+      if (!Array.isArray(raw)) return fail("levels must be a list.");
+
+      // Ids are generated here so the model never has to invent them, and so
+      // renaming a level does not orphan the students pointing at it.
+      const existing = group.syllabus ?? [];
+      const levels = raw.map((entry, i) => {
+        const level = (entry ?? {}) as Record<string, unknown>;
+        const name = str(level.name) ?? `Level ${i + 1}`;
+        const previous = existing.find((l) => l.name === name);
+        const lessonsRaw = Array.isArray(level.lessons) ? level.lessons : [];
+
+        return {
+          id: previous?.id ?? `lvl_${Math.random().toString(36).slice(2, 9)}`,
+          name,
+          lessons: lessonsRaw.map((l, j) => {
+            const lesson = (l ?? {}) as Record<string, unknown>;
+            const title = str(lesson.title) ?? `Lesson ${j + 1}`;
+            const before = previous?.lessons.find((x) => x.title === title);
+            const list = (v: unknown): string[] =>
+              Array.isArray(v)
+                ? v.map((x) => String(x).trim()).filter(Boolean)
+                : [];
+            return {
+              id: before?.id ?? `les_${Math.random().toString(36).slice(2, 9)}`,
+              title,
+              topics: list(lesson.topics),
+              homework: list(lesson.homework),
+            };
+          }),
+        };
+      });
+
+      deps.updateGroup(group.id, { syllabus: levels });
+      const lessonCount = levels.reduce((n, l) => n + l.lessons.length, 0);
+      return ok(
+        { course: group.name, levels: levels.length, lessons: lessonCount },
+        `Updated the plan for ${group.name}: ${levels.length} level${levels.length === 1 ? "" : "s"}, ${lessonCount} lesson${lessonCount === 1 ? "" : "s"}`,
+      );
+    }
+
+    case "set_student_fields": {
+      const who = str(input.name);
+      if (!who) return fail("name is required.");
+      const student = findStudent(db, who);
+      if (!student) return fail(`No student called "${who}".`);
+
+      const raw = input.fields;
+      if (!raw || typeof raw !== "object" || Array.isArray(raw))
+        return fail("fields must be an object of name to value.");
+
+      const next: Record<string, string> = { ...(student.fields ?? {}) };
+      for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+        const key = k.trim();
+        if (!key) continue;
+        const value = String(v ?? "").trim();
+        // An empty value is how a field gets removed.
+        if (value) next[key] = value;
+        else delete next[key];
+      }
+
+      deps.updateStudent(student.id, { fields: next });
+      return ok(
+        { student: student.name, fields: next },
+        `Updated fields for ${student.name}`,
+      );
     }
 
     case "list_exams": {

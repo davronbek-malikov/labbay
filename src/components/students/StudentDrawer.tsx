@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { Button, Drawer, Field, Input, Select, Textarea } from "@/components/ui";
+import { CustomFields } from "@/components/students/CustomFields";
 import { useStore } from "@/lib/store/StoreProvider";
 import type { Student, StudentStatus } from "@/lib/types";
 
 interface Draft {
+  levelId: string | null;
+  fields: Record<string, string>;
   name: string;
   telegram: string;
   subject: string;
@@ -16,6 +19,8 @@ interface Draft {
 }
 
 const blank = (groupId: string | null): Draft => ({
+  levelId: null,
+  fields: {},
   name: "",
   telegram: "",
   subject: "",
@@ -53,10 +58,20 @@ export function StudentDrawer({
             aiNotes: student.aiNotes,
             status: student.status,
             groupId: student.groupId,
+            levelId: student.levelId,
+            fields: student.fields ?? {},
           }
         : blank(groupId),
     );
   }, [open, student, groupId]);
+
+  // Levels offered are the ones on the course the student is actually on.
+  const levels = db.groups.find((g) => g.id === draft.groupId)?.syllabus ?? [];
+
+  // Field names this teacher already uses, so they stay consistent.
+  const fieldNames = Array.from(
+    new Set(db.students.flatMap((s) => Object.keys(s.fields ?? {}))),
+  ).sort();
 
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) =>
     setDraft((d) => ({ ...d, [key]: value }));
@@ -148,6 +163,31 @@ export function StudentDrawer({
             />
           </Field>
         </div>
+
+        {levels.length > 0 ? (
+          <Field
+            label="Where they are on the course"
+            hint="Levels come from the course plan."
+          >
+            <Select
+              value={draft.levelId ?? ""}
+              onChange={(e) => set("levelId", e.target.value || null)}
+            >
+              <option value="">Not set</option>
+              {levels.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.name}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        ) : null}
+
+        <CustomFields
+          value={draft.fields}
+          onChange={(fields) => set("fields", fields)}
+          suggestions={fieldNames}
+        />
 
         <Field
           label="Notes for the agent"
