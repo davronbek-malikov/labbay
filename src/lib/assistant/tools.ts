@@ -193,6 +193,29 @@ export const ASSISTANT_TOOLS: ToolSpec[] = [
     },
   },
   {
+    name: "list_exams",
+    description:
+      "Courses with a final exam coming up, how many days away it is, who is on them, and whether the teacher has acknowledged it yet.",
+    input_schema: {
+      type: "object",
+      properties: {
+        within_days: { type: "number", description: "Default 14." },
+      },
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "acknowledge_exam",
+    description:
+      "Marks a course's exam reminder as seen, so the red alert on the home screen stops showing for that date.",
+    input_schema: {
+      type: "object",
+      properties: { course: { type: "string" } },
+      required: ["course"],
+      additionalProperties: false,
+    },
+  },
+  {
     name: "get_money",
     description:
       "Income and expenses over the last N days: student fees collected, other income, expenses, and the net. Use for any question about earnings, spending, or profit.",

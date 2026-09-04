@@ -7,6 +7,7 @@
  */
 import { seedDatabase } from "../src/lib/seed";
 import { executeTool, type ToolDeps } from "../src/lib/assistant/execute";
+import { examAlerts } from "../src/lib/format";
 import type { Database, Group, Payment, Student, Transaction } from "../src/lib/types";
 
 const clone = (d: Database): Database => JSON.parse(JSON.stringify(d));
@@ -189,7 +190,63 @@ console.log("\n5. Unknown tool");
 const unknown = run(db, "make_coffee");
 check("unknown tool fails cleanly", unknown.out.isError);
 
+
+/* ------------------------------------------------------------------ exams */
+
+console.log("\n6. Exam alerts");
+
+const today = () => new Date().toISOString().slice(0, 10);
+const inDays = (n: number) =>
+  new Date(Date.now() + n * 86_400_000).toISOString().slice(0, 10);
+
+const examDb = clone(seedDatabase);
+examDb.groups[0].finalExamDate = inDays(5);
+examDb.groups[0].examAckDate = null;
+for (const g of examDb.groups.slice(1)) g.finalExamDate = null;
+
+check("an exam 5 days away raises an alert", examAlerts(examDb).length === 1);
+
+const ackedDb = clone(examDb);
+ackedDb.groups[0].examAckDate = ackedDb.groups[0].finalExamDate;
+check("acknowledging it clears the alert", examAlerts(ackedDb).length === 0);
+
+// Moving the exam must raise it again, or a rescheduled exam goes unnoticed.
+const movedDb = clone(ackedDb);
+movedDb.groups[0].finalExamDate = inDays(9);
+check("moving the exam raises it again", examAlerts(movedDb).length === 1);
+
+const farDb = clone(examDb);
+farDb.groups[0].finalExamDate = inDays(60);
+check("a distant exam stays quiet", examAlerts(farDb).length === 0);
+
+const pastDb = clone(examDb);
+pastDb.groups[0].finalExamDate = inDays(-3);
+check("a finished exam stays quiet", examAlerts(pastDb).length === 0);
+
+const todayDb = clone(examDb);
+todayDb.groups[0].finalExamDate = today();
+check("an exam today still alerts", examAlerts(todayDb).length === 1);
+check("an exam today reads as 0 days", examAlerts(todayDb)[0].daysAway === 0);
+
+const noDate = clone(examDb);
+noDate.groups[0].finalExamDate = null;
+check("a course with no exam never alerts", examAlerts(noDate).length === 0);
+
+const listed = run(examDb, "list_exams");
+check("list_exams sees it", (listed.data.count as number) === 1, listed.out.result);
+
+const ackTool = run(examDb, "acknowledge_exam", { course: examDb.groups[0].name });
+check("acknowledge_exam succeeds", !ackTool.out.isError, ackTool.out.result);
+check(
+  "acknowledge_exam writes the date",
+  (ackTool.calls["updateGroup"] ?? []).length === 1,
+);
+
+const ackGhost = run(examDb, "acknowledge_exam", { course: "No Such Course" });
+check("acknowledge_exam refuses an unknown course", ackGhost.out.isError);
+
 /* ------------------------------------------------------------------ done */
+
 
 const payments: Payment[] = db.payments;
 const txs: Transaction[] = db.transactions;

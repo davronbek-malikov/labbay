@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Page } from "@/components/AppShell";
 import { WeekStrip } from "@/components/WeekStrip";
+import { ExamAlerts } from "@/components/ExamAlerts";
 import { Badge, Button, Skeleton } from "@/components/ui";
 import { IconArrowRight } from "@/components/icons";
 import { useStore } from "@/lib/store/StoreProvider";
@@ -119,6 +120,8 @@ export default function DashboardPage() {
         </div>
       }
     >
+      <ExamAlerts />
+
       {/* Stats — numbers as data, no boxes, no icons. */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Stat value={active.length} label="Active students" />

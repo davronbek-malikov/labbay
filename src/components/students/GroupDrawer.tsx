@@ -84,6 +84,7 @@ export function GroupDrawer({
       finalExamDate: draft.finalExamDate || null,
       fee: Number(draft.fee.replace(/\D/g, "")) || 0,
       currency: draft.currency,
+      examAckDate: null,
       topics: draft.topics,
       homework: draft.homework,
       notes: draft.notes,

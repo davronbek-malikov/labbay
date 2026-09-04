@@ -1,5 +1,6 @@
 import {
   audienceOf,
+  examAlerts,
   financeSummary,
   groupNameOf,
   money,
@@ -279,6 +280,8 @@ export function executeTool(
       if (findGroup(db, name)) return fail(`A course called "${name}" exists.`);
 
       deps.addGroup({
+        // A new course has never had its exam acknowledged.
+        examAckDate: null,
         name,
         kind: (str(input.kind) as GroupKind) ?? "group",
         startDate: str(input.start_date) ?? null,
@@ -421,6 +424,37 @@ export function executeTool(
           note: p.note || undefined,
         })),
       });
+    }
+
+    case "list_exams": {
+      const within = Math.max(1, Math.min(num(input.within_days) ?? 14, 365));
+      const upcoming = examAlerts(db, within);
+      return ok({
+        count: upcoming.length,
+        exams: upcoming.map((a) => ({
+          course: a.group.name,
+          kind: a.group.kind,
+          date: a.group.finalExamDate,
+          days_away: a.daysAway,
+          students: a.students.map((s) => s.name),
+          acknowledged: a.group.examAckDate === a.group.finalExamDate,
+        })),
+      });
+    }
+
+    case "acknowledge_exam": {
+      const which = str(input.course);
+      if (!which) return fail("course is required.");
+      const group = findGroup(db, which);
+      if (!group) return fail(`No course called "${which}".`);
+      if (!group.finalExamDate)
+        return fail(`"${group.name}" has no final exam date set.`);
+
+      deps.updateGroup(group.id, { examAckDate: group.finalExamDate });
+      return ok(
+        { acknowledged: group.name, date: group.finalExamDate },
+        `Cleared the exam reminder for ${group.name}`,
+      );
     }
 
     case "get_money": {

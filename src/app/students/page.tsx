@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Page } from "@/components/AppShell";
 import { StudentDrawer } from "@/components/students/StudentDrawer";
 import { StudentsNav } from "@/components/students/StudentsNav";
+import { ExamAlerts } from "@/components/ExamAlerts";
 import { Button, EmptyState, Input, cx } from "@/components/ui";
 import { IconSearch } from "@/components/icons";
 import { useStore } from "@/lib/store/StoreProvider";
@@ -42,6 +43,8 @@ export default function StudentsPage() {
       }
     >
       <StudentsNav />
+
+      <ExamAlerts />
 
       <div className="relative mb-5">
         <IconSearch className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-faint pointer-events-none" />
