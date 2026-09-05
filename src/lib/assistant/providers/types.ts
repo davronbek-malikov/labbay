@@ -33,7 +33,13 @@ export interface ProviderReply {
   content: ChatBlock[];
 }
 
-export type ProviderId = "gemini" | "groq" | "anthropic";
+export type ProviderId =
+  | "gemini"
+  | "groq"
+  | "openrouter"
+  | "cerebras"
+  | "mistral"
+  | "anthropic";
 
 export interface ModelInfo {
   id: string;

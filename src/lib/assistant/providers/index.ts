@@ -1,13 +1,25 @@
 import { anthropicProvider } from "./anthropic";
 import { geminiProvider } from "./gemini";
-import { groqProvider } from "./groq";
+import {
+  cerebrasProvider,
+  groqProvider,
+  mistralProvider,
+  openRouterProvider,
+} from "./openaiCompatible";
 import type { Provider, ProviderId } from "./types";
 
 /**
  * Order matters: the first configured provider is the default, so a project
  * with only a Gemini key just works with no extra setting.
  */
-const ALL: Provider[] = [geminiProvider, groqProvider, anthropicProvider];
+const ALL: Provider[] = [
+  groqProvider,
+  openRouterProvider,
+  cerebrasProvider,
+  mistralProvider,
+  geminiProvider,
+  anthropicProvider,
+];
 
 export function available(): Provider[] {
   return ALL.filter((p) => p.isConfigured());

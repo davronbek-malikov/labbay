@@ -354,13 +354,6 @@ export default function AssistantPage() {
           ) : null}
         </div>
 
-        <ModelPicker
-          providers={providers}
-          provider={provider}
-          model={model}
-          onChange={chooseModel}
-          fetchModels={fetchModels}
-        />
       </header>
 
       {/* History */}
@@ -513,6 +506,15 @@ export default function AssistantPage() {
             busy={busy}
             canSeeImages={canSeeImages}
             language={SPEECH_LANG[db.settings.language] ?? "en-US"}
+            modelPicker={
+              <ModelPicker
+                providers={providers}
+                provider={provider}
+                model={model}
+                onChange={chooseModel}
+                fetchModels={fetchModels}
+              />
+            }
             onSend={(text, attachments) => void ask(text, attachments)}
             onStop={() => abortRef.current?.abort()}
           />

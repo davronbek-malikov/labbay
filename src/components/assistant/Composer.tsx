@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button, cx } from "@/components/ui";
 import { IconPlus } from "@/components/icons";
 import { readAttachment, type Attachment } from "@/lib/assistant/attachments";
+import type { ReactNode } from "react";
 
 /** Browsers name this differently, and it is missing entirely in some. */
 function speechRecognition(): (new () => SpeechRecognitionLike) | null {
@@ -30,6 +31,7 @@ export function Composer({
   busy,
   canSeeImages,
   language,
+  modelPicker,
   onSend,
   onStop,
 }: {
@@ -37,6 +39,8 @@ export function Composer({
   canSeeImages: boolean;
   /** Which language to listen for when dictating. */
   language: string;
+  /** Sits on the bottom row, where the model belongs next to the message. */
+  modelPicker?: ReactNode;
   onSend: (text: string, attachments: Attachment[]) => void;
   onStop: () => void;
 }) {
@@ -272,6 +276,12 @@ export function Composer({
           </Button>
         )}
       </div>
+
+      {modelPicker ? (
+        <div className="flex items-center gap-2 mt-2.5 pt-2.5 border-t border-line">
+          {modelPicker}
+        </div>
+      ) : null}
 
       {!canSeeImages && attachments.some((a) => a.kind === "image") ? (
         <p className="text-[12px] text-clay mt-2 px-1">
