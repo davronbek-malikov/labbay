@@ -8,6 +8,7 @@
 import { seedDatabase } from "../src/lib/seed";
 import { executeTool, type ToolDeps } from "../src/lib/assistant/execute";
 import { examAlerts } from "../src/lib/format";
+import { findSimilar, similarity, SIMILAR_ENOUGH } from "../src/lib/similar";
 import type {
   Database,
   Group,
@@ -337,7 +338,58 @@ check("an empty value removes the field", !("Keep" in clearedFields));
 const badF = run(fieldsDb, "set_student_fields", { name: someone.name, fields: "nope" });
 check("set_student_fields rejects a non-object", badF.out.isError);
 
+
+/* ------------------------------------------------------------- duplicates */
+
+console.log("\n8. Duplicate detection");
+
+check("identical names match", similarity("IELTS evening", "IELTS evening") === 1);
+check("case and punctuation ignored", similarity("IELTS evening", "ielts-evening") >= SIMILAR_ENOUGH);
+check("word order ignored", similarity("IELTS evening", "Evening IELTS") >= SIMILAR_ENOUGH);
+check("a typo still matches", similarity("IELTS evening", "IELTS evning") >= SIMILAR_ENOUGH);
+check("unrelated names do not match", similarity("IELTS evening", "DTM maths") < SIMILAR_ENOUGH);
+
+// Numbers are usually what distinguishes one course from the next.
+check("Grade 10 and Grade 11 are different", similarity("Maths grade 10", "Maths grade 11") < SIMILAR_ENOUGH);
+check("Model Building 2 and 3 are different", similarity("Model Building 2", "Model Building 3") < SIMILAR_ENOUGH);
+
+const dupDb = clone(seedDatabase);
+const existingCourse = dupDb.groups[0].name;
+
+const dupCourse = run(dupDb, "create_course", { name: existingCourse + " " });
+check("create_course refuses an exact duplicate", dupCourse.out.isError);
+
+const nearCourse = run(dupDb, "create_course", { name: existingCourse.toUpperCase() });
+check("create_course refuses a near duplicate", nearCourse.out.isError, nearCourse.out.result);
+
+const forced = run(dupDb, "create_course", {
+  name: existingCourse.toUpperCase(),
+  allow_duplicate: true,
+});
+check("create_course allows it once confirmed", !forced.out.isError, forced.out.result);
+check("the confirmed course is written", (forced.calls["addGroup"] ?? []).length === 1);
+
+const freshCourse = run(dupDb, "create_course", { name: "Chemistry Saturday" });
+check("an unrelated course is created without fuss", !freshCourse.out.isError);
+
+const existingStudent = dupDb.students[0].name;
+const dupStudent = run(dupDb, "add_student", { name: existingStudent });
+check("add_student refuses a duplicate name", dupStudent.out.isError);
+
+const forcedStudent = run(dupDb, "add_student", {
+  name: existingStudent,
+  allow_duplicate: true,
+});
+check("add_student allows it once confirmed", !forcedStudent.out.isError);
+
+const findsIt = findSimilar(existingCourse, dupDb.groups);
+check("findSimilar locates the existing course", findsIt.length === 1 && findsIt[0].exact);
+
+const skipsSelf = findSimilar(existingCourse, dupDb.groups, { skipId: dupDb.groups[0].id });
+check("renaming does not warn about itself", skipsSelf.length === 0);
+
 /* ------------------------------------------------------------------ done */
+
 
 
 

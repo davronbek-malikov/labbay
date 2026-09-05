@@ -5,6 +5,8 @@ import { Button, Drawer, Field, Input, Select, Textarea } from "@/components/ui"
 import { ListEditor } from "@/components/students/ListEditor";
 import { useStore } from "@/lib/store/StoreProvider";
 import { CURRENCIES, studentsIn } from "@/lib/format";
+import { findSimilar } from "@/lib/similar";
+import { DuplicateWarning } from "@/components/DuplicateWarning";
 import type { Currency, Group, GroupKind } from "@/lib/types";
 
 interface Draft {
@@ -63,10 +65,18 @@ export function GroupDrawer({
 }) {
   const { db, addGroup, updateGroup, removeGroup } = useStore();
   const [draft, setDraft] = useState<Draft>(blank);
+  const [allowDuplicate, setAllowDuplicate] = useState(false);
 
   useEffect(() => {
-    if (open) setDraft(group ? toDraft(group) : blank);
+    if (open) {
+      setDraft(group ? toDraft(group) : blank);
+      setAllowDuplicate(false);
+    }
   }, [open, group]);
+
+  // Renaming a course must not warn about itself.
+  const similar = findSimilar(draft.name, db.groups, { skipId: group?.id });
+  const blocked = similar.length > 0 && !allowDuplicate;
 
   const isGroup = (group?.kind ?? kind) === "group";
   const members = group ? studentsIn(group.id, db.students).length : 0;
@@ -75,7 +85,7 @@ export function GroupDrawer({
     setDraft((d) => ({ ...d, [key]: value }));
 
   const save = () => {
-    if (!draft.name.trim()) return;
+    if (!draft.name.trim() || blocked) return;
     const payload = {
       name: draft.name.trim(),
       kind: group?.kind ?? kind,
@@ -128,7 +138,11 @@ export function GroupDrawer({
             </Button>
           ) : null}
           <Button onClick={onClose}>Cancel</Button>
-          <Button variant="primary" onClick={save} disabled={!draft.name.trim()}>
+          <Button
+            variant="primary"
+            onClick={save}
+            disabled={!draft.name.trim() || blocked}
+          >
             {group ? "Save" : "Create"}
           </Button>
         </>
@@ -150,6 +164,13 @@ export function GroupDrawer({
             autoFocus
           />
         </Field>
+
+        <DuplicateWarning
+          matches={similar}
+          noun="course"
+          confirmed={allowDuplicate}
+          onConfirm={setAllowDuplicate}
+        />
 
         <div className="grid grid-cols-2 gap-3">
           <Field label="Starting day">

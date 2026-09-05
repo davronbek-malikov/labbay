@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import { Button, Drawer, Field, Input, Select, Textarea } from "@/components/ui";
 import { CustomFields } from "@/components/students/CustomFields";
+import { DuplicateWarning } from "@/components/DuplicateWarning";
+import { CoursePicker } from "@/components/students/CoursePicker";
+import { findSimilar } from "@/lib/similar";
 import { useStore } from "@/lib/store/StoreProvider";
 import type { Student, StudentStatus } from "@/lib/types";
 
@@ -45,6 +48,7 @@ export function StudentDrawer({
 }) {
   const { db, addStudent, updateStudent, removeStudent } = useStore();
   const [draft, setDraft] = useState<Draft>(blank(groupId));
+  const [allowDuplicate, setAllowDuplicate] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -63,7 +67,11 @@ export function StudentDrawer({
           }
         : blank(groupId),
     );
+    setAllowDuplicate(false);
   }, [open, student, groupId]);
+
+  const similar = findSimilar(draft.name, db.students, { skipId: student?.id });
+  const blocked = similar.length > 0 && !allowDuplicate;
 
   // Levels offered are the ones on the course the student is actually on.
   const levels = db.groups.find((g) => g.id === draft.groupId)?.syllabus ?? [];
@@ -77,7 +85,7 @@ export function StudentDrawer({
     setDraft((d) => ({ ...d, [key]: value }));
 
   const save = () => {
-    if (!draft.name.trim()) return;
+    if (!draft.name.trim() || blocked) return;
     if (student) updateStudent(student.id, draft);
     else addStudent(draft);
     onClose();
@@ -105,7 +113,11 @@ export function StudentDrawer({
             </Button>
           ) : null}
           <Button onClick={onClose}>Cancel</Button>
-          <Button variant="primary" onClick={save} disabled={!draft.name.trim()}>
+          <Button
+            variant="primary"
+            onClick={save}
+            disabled={!draft.name.trim() || blocked}
+          >
             {student ? "Save" : "Add"}
           </Button>
         </>
@@ -121,6 +133,13 @@ export function StudentDrawer({
           />
         </Field>
 
+        <DuplicateWarning
+          matches={similar}
+          noun="student"
+          confirmed={allowDuplicate}
+          onConfirm={setAllowDuplicate}
+        />
+
         <Field
           label="Telegram"
           hint="A handle like @aziza_k, or a phone number in international format."
@@ -133,18 +152,19 @@ export function StudentDrawer({
           />
         </Field>
 
-        <Field label="Course">
-          <Select
-            value={draft.groupId ?? ""}
-            onChange={(e) => set("groupId", e.target.value || null)}
-          >
-            <option value="">No course</option>
-            {db.groups.map((g) => (
-              <option key={g.id} value={g.id}>
-                {g.name} {g.kind === "individual" ? "(individual)" : ""}
-              </option>
-            ))}
-          </Select>
+        <Field
+          label="Course"
+          hint="Type to search. Leave empty if they are not on a course yet."
+        >
+          <CoursePicker
+            courses={db.groups}
+            value={draft.groupId}
+            onChange={(groupId) => {
+              set("groupId", groupId);
+              // A level belongs to a course, so moving course clears it.
+              set("levelId", null);
+            }}
+          />
         </Field>
 
         <div className="grid grid-cols-2 gap-3">

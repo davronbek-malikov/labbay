@@ -10,6 +10,7 @@ import {
   totalPaid,
 } from "@/lib/format";
 import { autopilotBlockedReason } from "@/lib/engine/send";
+import { findSimilar } from "@/lib/similar";
 import type { SendSpec } from "@/lib/engine/send";
 import type {
   Audience,
@@ -243,7 +244,18 @@ export function executeTool(
     case "add_student": {
       const name = str(input.name);
       if (!name) return fail("name is required.");
-      if (findStudent(db, name)) return fail(`${name} is already on your list.`);
+
+      if (!input.allow_duplicate) {
+        const clash = findStudent(db, name);
+        const similar = findSimilar(name, db.students);
+        if (clash || similar.length > 0) {
+          const other = clash?.name ?? similar[0].item.name;
+          return fail(
+            `"${name}" looks like the existing student "${other}". ` +
+              "Check with the teacher, then call again with allow_duplicate true.",
+          );
+        }
+      }
 
       let groupId: string | null = null;
       const courseName = str(input.course);
@@ -279,7 +291,20 @@ export function executeTool(
     case "create_course": {
       const name = str(input.name);
       if (!name) return fail("name is required.");
-      if (findGroup(db, name)) return fail(`A course called "${name}" exists.`);
+      // One guard for both exact and near matches. Confirmation overrides it,
+      // because two courses really can share a name — the same class taught on
+      // two days, for instance.
+      if (!input.allow_duplicate) {
+        const clash = findGroup(db, name);
+        const similar = findSimilar(name, db.groups);
+        if (clash || similar.length > 0) {
+          const other = clash?.name ?? similar[0].item.name;
+          return fail(
+            `"${name}" looks like the existing course "${other}". ` +
+              "Ask the teacher whether it is really different, then call again with allow_duplicate true.",
+          );
+        }
+      }
 
       deps.addGroup({
         // A new course has never had its exam acknowledged.
