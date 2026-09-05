@@ -9,7 +9,9 @@ import {
 
 const KEY = process.env.GROQ_API_KEY;
 // `||` not `??`: an env var set to an empty string must still fall back.
-const MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+// llama-3.3-70b-versatile was retired in June 2026; this is Groq's own
+// recommended replacement and supports tool calling.
+const MODEL = process.env.GROQ_MODEL || "openai/gpt-oss-120b";
 const ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
 
 interface OpenAIMessage {
@@ -86,7 +88,24 @@ export const groqProvider: Provider = {
 
   isConfigured: () => Boolean(KEY),
 
-  async send({ system, messages, tools }) {
+  async listModels() {
+    if (!KEY) return [];
+    const response = await fetch("https://api.groq.com/openai/v1/models", {
+      headers: { Authorization: `Bearer ${KEY}` },
+    });
+    if (!response.ok) return [];
+    const data = (await response.json()) as {
+      data?: Array<{ id: string; active?: boolean }>;
+    };
+    return (data.data ?? [])
+      .filter((m) => m.active !== false)
+      // Whisper and guard models cannot hold a conversation.
+      .filter((m) => !/whisper|tts|guard|prompt-guard/i.test(m.id))
+      .map((m) => ({ id: m.id, label: m.id }))
+      .sort((a, b) => a.id.localeCompare(b.id));
+  },
+
+  async send({ system, messages, tools, model }) {
     if (!KEY) throw new ProviderError("No Groq API key configured.", 401);
 
     const response = await fetch(ENDPOINT, {
@@ -96,7 +115,7 @@ export const groqProvider: Provider = {
         Authorization: `Bearer ${KEY}`,
       },
       body: JSON.stringify({
-        model: MODEL,
+        model: model || MODEL,
         messages: toMessages(system, messages),
         tools: tools.map((t: ToolSpec) => ({
           type: "function",

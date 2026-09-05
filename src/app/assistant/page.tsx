@@ -3,6 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Composer } from "@/components/assistant/Composer";
+import {
+  ModelPicker,
+  type ModelInfo,
+  type ProviderInfo,
+} from "@/components/assistant/ModelPicker";
 import { Button, cx } from "@/components/ui";
 import { Markdown } from "@/lib/markdown";
 import { useStore } from "@/lib/store/StoreProvider";
@@ -27,12 +32,6 @@ interface Conversation {
   updatedAt: number;
 }
 
-interface ProviderInfo {
-  id: string;
-  label: string;
-  vision: boolean;
-}
-
 const SUGGESTIONS = [
   "Who has gone quiet?",
   "Who still owes me money?",
@@ -42,6 +41,7 @@ const SUGGESTIONS = [
 
 const MAX_TOOL_ROUNDS = 6;
 const HISTORY_KEY = "labbay.chats.v1";
+const MODEL_KEY = "labbay.model.v1";
 
 const SPEECH_LANG: Record<string, string> = {
   en: "en-US",
@@ -72,6 +72,7 @@ export default function AssistantPage() {
   const [error, setError] = useState<string | null>(null);
   const [providers, setProviders] = useState<ProviderInfo[]>([]);
   const [provider, setProvider] = useState<string | null>(null);
+  const [model, setModel] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
 
@@ -79,6 +80,51 @@ export default function AssistantPage() {
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => setChats(loadChats()), []);
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(MODEL_KEY);
+      if (saved) {
+        const { provider: p, model: m } = JSON.parse(saved) as {
+          provider: string | null;
+          model: string | null;
+        };
+        if (p) setProvider(p);
+        if (m) setModel(m);
+      }
+    } catch {
+      // A blocked store just means the default is used.
+    }
+  }, []);
+
+  const chooseModel = useCallback((p: string, m: string | null) => {
+    setProvider(p);
+    setModel(m);
+    try {
+      window.localStorage.setItem(MODEL_KEY, JSON.stringify({ provider: p, model: m }));
+    } catch {
+      // Not worth interrupting the chat over.
+    }
+  }, []);
+
+  const fetchModels = useCallback(async (providerId: string): Promise<ModelInfo[]> => {
+    let headers: Record<string, string> = {};
+    if (isSupabaseConfigured) {
+      const { data } = await supabase().auth.getSession();
+      if (data.session) {
+        headers = { Authorization: `Bearer ${data.session.access_token}` };
+      }
+    }
+    try {
+      const r = await fetch(`/api/assistant?models=${encodeURIComponent(providerId)}`, {
+        headers,
+      });
+      const d = (await r.json()) as { models?: ModelInfo[] };
+      return d.models ?? [];
+    } catch {
+      return [];
+    }
+  }, []);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -206,6 +252,7 @@ export default function AssistantPage() {
             messages: wire,
             context: snapshot(db),
             ...(provider ? { provider } : {}),
+            ...(model ? { model } : {}),
           }),
         });
 
@@ -307,21 +354,13 @@ export default function AssistantPage() {
           ) : null}
         </div>
 
-        {providers.length > 1 ? (
-          <div className="seg w-full max-w-[300px]">
-            {providers.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                className="seg-btn"
-                aria-pressed={provider === p.id}
-                onClick={() => setProvider(p.id)}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
-        ) : null}
+        <ModelPicker
+          providers={providers}
+          provider={provider}
+          model={model}
+          onChange={chooseModel}
+          fetchModels={fetchModels}
+        />
       </header>
 
       {/* History */}

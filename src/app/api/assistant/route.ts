@@ -35,11 +35,26 @@ export async function GET(request: Request) {
   if (!(await isAuthorised(request))) {
     return NextResponse.json({ providers: [] }, { status: 401 });
   }
+
+  // `?models=groq` asks that one provider what it will serve today, so the
+  // picker never offers a model that has been retired.
+  const wanted = new URL(request.url).searchParams.get("models");
+  if (wanted) {
+    const provider = available().find((p) => p.id === wanted);
+    if (!provider) return NextResponse.json({ models: [] });
+    try {
+      return NextResponse.json({ models: await provider.listModels() });
+    } catch {
+      return NextResponse.json({ models: [] });
+    }
+  }
+
   return NextResponse.json({
     providers: available().map((p) => ({
       id: p.id,
       label: p.label,
       vision: p.vision,
+      defaultModel: p.model,
     })),
   });
 }
@@ -50,6 +65,8 @@ interface Body {
   context?: string;
   /** Overrides the default provider for this request. */
   provider?: string;
+  /** Overrides that provider's default model. */
+  model?: string;
 }
 
 export async function POST(request: Request) {
@@ -93,11 +110,16 @@ export async function POST(request: Request) {
       system,
       messages: body.messages,
       tools: ASSISTANT_TOOLS,
+      model: body.model,
     });
 
     return NextResponse.json({
       content: reply.content,
-      provider: { id: provider.id, label: provider.label, model: provider.model },
+      provider: {
+        id: provider.id,
+        label: provider.label,
+        model: body.model || provider.model,
+      },
     });
   } catch (error) {
     if (error instanceof ProviderError) {

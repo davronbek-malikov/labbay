@@ -18,7 +18,23 @@ export const anthropicProvider: Provider = {
   isConfigured: () =>
     Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN),
 
-  async send({ system, messages, tools }) {
+  async listModels() {
+    const key = process.env.ANTHROPIC_API_KEY;
+    if (!key) return [];
+    const response = await fetch("https://api.anthropic.com/v1/models?limit=100", {
+      headers: { "x-api-key": key, "anthropic-version": "2023-06-01" },
+    });
+    if (!response.ok) return [];
+    const data = (await response.json()) as {
+      data?: Array<{ id: string; display_name?: string }>;
+    };
+    return (data.data ?? []).map((m) => ({
+      id: m.id,
+      label: m.display_name ?? m.id,
+    }));
+  },
+
+  async send({ system, messages, tools, model }) {
     if (!anthropicProvider.isConfigured()) {
       throw new ProviderError("No Anthropic API key configured.", 401);
     }
@@ -27,7 +43,7 @@ export const anthropicProvider: Provider = {
 
     try {
       const response = await client.messages.create({
-        model: MODEL,
+        model: model || MODEL,
         max_tokens: 16000,
         thinking: { type: "adaptive" },
         system: [

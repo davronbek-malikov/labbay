@@ -90,7 +90,29 @@ export const geminiProvider: Provider = {
 
   isConfigured: () => Boolean(KEY),
 
-  async send({ system, messages, tools }) {
+  async listModels() {
+    if (!KEY) return [];
+    const response = await fetch(`${ENDPOINT}?pageSize=200`, {
+      headers: { "x-goog-api-key": KEY },
+    });
+    if (!response.ok) return [];
+    const data = (await response.json()) as {
+      models?: Array<{
+        name: string;
+        displayName?: string;
+        supportedGenerationMethods?: string[];
+      }>;
+    };
+    return (data.models ?? [])
+      .filter((m) => m.supportedGenerationMethods?.includes("generateContent"))
+      .map((m) => ({
+        id: m.name.replace(/^models\//, ""),
+        label: m.displayName ?? m.name.replace(/^models\//, ""),
+      }))
+      .sort((a, b) => a.id.localeCompare(b.id));
+  },
+
+  async send({ system, messages, tools, model }) {
     if (!KEY) throw new ProviderError("No Gemini API key configured.", 401);
 
     const body = {
@@ -118,7 +140,7 @@ export const geminiProvider: Provider = {
     };
 
     const response = await fetch(
-      `${ENDPOINT}/${encodeURIComponent(MODEL)}:generateContent`,
+      `${ENDPOINT}/${encodeURIComponent(model || MODEL)}:generateContent`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-goog-api-key": KEY },

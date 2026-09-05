@@ -35,6 +35,12 @@ export interface ProviderReply {
 
 export type ProviderId = "gemini" | "groq" | "anthropic";
 
+export interface ModelInfo {
+  id: string;
+  /** Something a person would recognise, when the provider gives one. */
+  label: string;
+}
+
 export interface Provider {
   id: ProviderId;
   label: string;
@@ -43,10 +49,20 @@ export interface Provider {
   /** The model actually used, for display. */
   model: string;
   isConfigured(): boolean;
+  /**
+   * What this provider will serve today.
+   *
+   * Model names get retired — Groq withdrew llama-3.3-70b-versatile and every
+   * hardcoded reference broke at once — so the list is fetched rather than
+   * written down.
+   */
+  listModels(): Promise<ModelInfo[]>;
   send(args: {
     system: string;
     messages: ChatMessage[];
     tools: ToolSpec[];
+    /** Overrides the default model for this call. */
+    model?: string;
   }): Promise<ProviderReply>;
 }
 
