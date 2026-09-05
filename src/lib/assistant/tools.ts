@@ -84,6 +84,11 @@ export const ASSISTANT_TOOLS: ToolSpec[] = [
     input_schema: {
       type: "object",
       properties: {
+        allow_duplicate: {
+          type: "boolean",
+          description:
+            "Only after the teacher confirms it really is a different person.",
+        },
         name: { type: "string" },
         telegram: { type: "string", description: "@username, or a phone number." },
         course: { type: "string", description: "Name of an existing course." },
@@ -114,6 +119,11 @@ export const ASSISTANT_TOOLS: ToolSpec[] = [
       type: "object",
       properties: {
         name: { type: "string" },
+        allow_duplicate: {
+          type: "boolean",
+          description:
+            "Only after the teacher confirms it really is a different course.",
+        },
         kind: { type: "string", enum: ["group", "individual"] },
         start_date: { type: "string", description: "YYYY-MM-DD" },
         end_date: { type: "string", description: "YYYY-MM-DD" },

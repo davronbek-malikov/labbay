@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Page } from "@/components/AppShell";
 import { StudentDrawer } from "@/components/students/StudentDrawer";
@@ -14,11 +15,10 @@ import {
   initials,
   longDate,
   money,
-  since,
   studentsIn,
   totalPaid,
 } from "@/lib/format";
-import type { Currency, Group, GroupKind, Student } from "@/lib/types";
+import type { Group, GroupKind, Student } from "@/lib/types";
 
 /** Courses: what you teach, when it runs, and what it earns. */
 export default function CoursesPage() {
@@ -96,62 +96,33 @@ export default function CoursesPage() {
 
         <CourseDates group={live} />
 
-        {live.topics.length || live.homework.length || live.notes ? (
-          <div className="grid md:grid-cols-2 gap-4 mt-4">
-            {live.topics.length ? (
-              <section className="card p-5">
-                <p className="label mb-3">Main topics</p>
-                <ol className="space-y-1.5">
-                  {live.topics.map((t, i) => (
-                    <li key={i} className="flex gap-2.5 text-[13.5px]">
-                      <span className="tabular text-[11.5px] text-faint pt-0.5">
-                        {i + 1}
-                      </span>
-                      <span>{t}</span>
-                    </li>
-                  ))}
-                </ol>
-              </section>
-            ) : null}
-
-            {live.homework.length ? (
-              <section className="card p-5">
-                <p className="label mb-3">Homework</p>
-                <ul className="space-y-1.5">
-                  {live.homework.map((h, i) => (
-                    <li key={i} className="flex gap-2.5 text-[13.5px]">
-                      <span className="w-1.5 h-1.5 rounded-full bg-accent mt-[7px] shrink-0" />
-                      <span>{h}</span>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ) : null}
-
-            {live.notes ? (
-              <section className="card p-5 md:col-span-2">
-                <p className="label mb-2">Notes</p>
-                <p className="text-[13.5px] text-muted leading-relaxed whitespace-pre-wrap">
-                  {live.notes}
-                </p>
-              </section>
-            ) : null}
-          </div>
-        ) : (
-          <p className="text-[13px] text-muted mt-4 px-1">
-            No topics or homework yet — add them with{" "}
-            <span className="font-semibold">Edit course</span>, or just ask the
-            assistant.
-          </p>
-        )}
+        {live.notes ? (
+          <section className="card p-5 mt-4">
+            <p className="label mb-2">Notes</p>
+            <p className="text-[13.5px] text-muted leading-relaxed whitespace-pre-wrap">
+              {live.notes}
+            </p>
+          </section>
+        ) : null}
 
         <SyllabusEditor group={live} />
 
-        <p className="label mt-7 mb-2 px-1">Students · tap one for payments</p>
+        <div className="flex flex-wrap items-baseline justify-between gap-2 mt-8 mb-2 px-1">
+          <p className="label">
+            Students · {members.length}
+          </p>
+          <Link
+            href="/students"
+            className="text-[12.5px] font-semibold text-accent hover:text-forest"
+          >
+            Manage in Students
+          </Link>
+        </div>
+
         {members.length === 0 ? (
           <EmptyState
             title="Nobody on this course yet"
-            body="Add a student and their payments will be tracked here."
+            body="Add students from the Students menu — start typing this course's name and pick it from the list."
             action={
               <Button variant="primary" onClick={() => setOpenStudent("new")}>
                 Add student
@@ -161,14 +132,15 @@ export default function CoursesPage() {
         ) : (
           <div className="set-card">
             {members.map((s) => (
-              <StudentRow
-                key={s.id}
-                student={s}
-                fee={live.fee}
-                currency={live.currency}
-                paid={totalPaid(s.id, db.payments)}
-                onClick={() => setPayingFor(s)}
-              />
+              <Link key={s.id} href={`/students/${s.id}`} className="set-row">
+                <span className="w-9 h-9 shrink-0 rounded-full bg-mint text-forest grid place-items-center text-[11.5px] font-bold">
+                  {initials(s.name)}
+                </span>
+                <span className="set-text">
+                  <span className="set-title block">{s.name}</span>
+                </span>
+                <span className="set-chevron text-[15px]">›</span>
+              </Link>
             ))}
           </div>
         )}
@@ -383,45 +355,3 @@ function Bar({ value, of }: { value: number; of: number }) {
   );
 }
 
-function StudentRow({
-  student,
-  fee,
-  currency,
-  paid,
-  onClick,
-}: {
-  student: Student;
-  fee: number;
-  currency: Currency;
-  paid: number;
-  onClick: () => void;
-}) {
-  const owed = Math.max(0, fee - paid);
-  return (
-    <button type="button" className="set-row" onClick={onClick}>
-      <span className="w-10 h-10 shrink-0 rounded-full bg-mint text-forest grid place-items-center text-[12px] font-bold">
-        {initials(student.name)}
-      </span>
-      <span className="set-text">
-        <span className="set-title block">{student.name}</span>
-        <span className="set-sub block">
-          {student.level || student.subject} · heard from you{" "}
-          {since(student.lastContactedAt)}
-        </span>
-      </span>
-      <span className="text-right shrink-0">
-        <span className="block tabular text-[13px] font-semibold">
-          {money(paid, currency)}
-        </span>
-        <span
-          className={cx(
-            "block text-[11.5px]",
-            owed === 0 ? "text-accent" : "text-clay",
-          )}
-        >
-          {owed === 0 ? "paid in full" : `${money(owed, currency)} left`}
-        </span>
-      </span>
-    </button>
-  );
-}
