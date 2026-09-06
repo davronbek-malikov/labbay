@@ -1,5 +1,6 @@
 import type {
   Audience,
+  PastCourse,
   Level,
   Currency,
   Transaction,
@@ -61,6 +62,8 @@ export interface StudentRow {
   level: string;
   level_id: string | null;
   fields: Record<string, string> | null;
+  enrolled_at: string | null;
+  past_courses: PastCourse[] | null;
   ai_notes: string;
   status: StudentStatus;
   last_contacted_at: string | null;
@@ -123,6 +126,8 @@ export const toStudent = (r: StudentRow): Student => ({
   level: r.level,
   levelId: r.level_id ?? null,
   fields: r.fields ?? {},
+  enrolledAt: r.enrolled_at ?? null,
+  pastCourses: r.past_courses ?? [],
   aiNotes: r.ai_notes,
   status: r.status,
   lastContactedAt: r.last_contacted_at,
@@ -140,6 +145,8 @@ export function fromStudent(
   if (p.level !== undefined) row.level = p.level;
   if (p.levelId !== undefined) row.level_id = p.levelId;
   if (p.fields !== undefined) row.fields = p.fields;
+  if (p.enrolledAt !== undefined) row.enrolled_at = p.enrolledAt;
+  if (p.pastCourses !== undefined) row.past_courses = p.pastCourses;
   if (p.aiNotes !== undefined) row.ai_notes = p.aiNotes;
   if (p.status !== undefined) row.status = p.status;
   if (p.lastContactedAt !== undefined) row.last_contacted_at = p.lastContactedAt;

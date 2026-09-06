@@ -11,6 +11,7 @@ import { useStore } from "@/lib/store/StoreProvider";
 import {
   dateTime,
   groupOf,
+  payStanding,
   initials,
   longDate,
   money,
@@ -32,6 +33,10 @@ export default function StudentProfilePage() {
   const [sent, setSent] = useState<string | null>(null);
 
   const student = db.students.find((s) => s.id === params.id);
+  const course = student ? groupOf(student, db.groups) : undefined;
+  const pay = student
+    ? payStanding(student, db)
+    : { state: "none" as const, paid: 0, fee: 0, owed: 0, currency: "UZS" as const, label: "" };
 
   if (!ready) return null;
 
@@ -46,7 +51,6 @@ export default function StudentProfilePage() {
     );
   }
 
-  const course = groupOf(student, db.groups);
   const paid = totalPaid(student.id, db.payments);
   const payments = paymentsOf(student.id, db.payments);
   const owed = course ? Math.max(0, course.fee - paid) : 0;
@@ -175,6 +179,99 @@ export default function StudentProfilePage() {
           </p>
         ) : null}
       </section>
+
+      {/* Where they stand, at a glance. */}
+      <section className="grid sm:grid-cols-3 gap-3 mb-6">
+        <div
+          className={
+            pay.state === "paid"
+              ? "card-mint p-5"
+              : pay.state === "none"
+                ? "card p-5"
+                : "rounded-[24px] bg-clay-soft p-5"
+          }
+        >
+          <p className="label">Fees</p>
+          <p
+            className={cx(
+              "figure text-[22px] mt-2",
+              pay.state === "paid"
+                ? "text-forest"
+                : pay.state === "none"
+                  ? "text-muted"
+                  : "text-clay",
+            )}
+          >
+            {pay.label}
+          </p>
+          {pay.fee > 0 ? (
+            <p className="text-[12.5px] text-muted mt-1">
+              {money(pay.paid, pay.currency)} of {money(pay.fee, pay.currency)}
+            </p>
+          ) : null}
+        </div>
+
+        <div className="card p-5">
+          <p className="label">Current course</p>
+          <p className="text-[15px] font-bold mt-2">
+            {course?.name ?? "Not on a course"}
+          </p>
+          <p className="text-[12.5px] text-muted mt-1">
+            {student.enrolledAt
+              ? `Started ${longDate(student.enrolledAt)}`
+              : course
+                ? "Start date not recorded"
+                : "Add one when you are ready"}
+          </p>
+        </div>
+
+        <div className="card p-5">
+          <p className="label">Last heard from you</p>
+          <p className="text-[15px] font-bold mt-2">
+            {since(student.lastContactedAt)}
+          </p>
+          <p className="text-[12.5px] text-muted mt-1">
+            {student.telegram || "No Telegram yet"}
+          </p>
+        </div>
+      </section>
+
+      {/* Courses they have finished. */}
+      {student.pastCourses?.length ? (
+        <section className="mb-6">
+          <p className="label mb-2 px-1">Courses before this one</p>
+          <div className="set-card">
+            {[...student.pastCourses].reverse().map((c, i) => (
+              <div key={i} className="set-row" style={{ cursor: "default" }}>
+                <span className="set-text">
+                  <span className="set-title block">{c.name}</span>
+                  <span className="set-sub block">
+                    {c.from ? `${longDate(c.from)} — ` : "Until "}
+                    {longDate(c.to)}
+                  </span>
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {/* Anything the teacher chose to track. */}
+      {Object.keys(student.fields ?? {}).length > 0 ? (
+        <section className="mb-6">
+          <p className="label mb-2 px-1">Details</p>
+          <div className="set-card">
+            {Object.entries(student.fields).map(([k, v]) => (
+              <div key={k} className="set-row" style={{ cursor: "default" }}>
+                <span className="set-text">
+                  <span className="set-title block">{k}</span>
+                </span>
+                <span className="text-[13px] text-muted">{v}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <div className="grid lg:grid-cols-2 gap-4 mt-4">
         {/* Course */}

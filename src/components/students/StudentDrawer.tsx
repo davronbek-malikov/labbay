@@ -10,6 +10,8 @@ import { useStore } from "@/lib/store/StoreProvider";
 import type { Student, StudentStatus } from "@/lib/types";
 
 interface Draft {
+  enrolledAt: string | null;
+  pastCourses: Student["pastCourses"];
   levelId: string | null;
   fields: Record<string, string>;
   name: string;
@@ -22,6 +24,8 @@ interface Draft {
 }
 
 const blank = (groupId: string | null): Draft => ({
+  enrolledAt: groupId ? new Date().toISOString().slice(0, 10) : null,
+  pastCourses: [],
   levelId: null,
   fields: {},
   name: "",
@@ -63,6 +67,8 @@ export function StudentDrawer({
             status: student.status,
             groupId: student.groupId,
             levelId: student.levelId,
+            enrolledAt: student.enrolledAt,
+            pastCourses: student.pastCourses ?? [],
             fields: student.fields ?? {},
           }
         : blank(groupId),

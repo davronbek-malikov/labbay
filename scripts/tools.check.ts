@@ -7,7 +7,7 @@
  */
 import { seedDatabase } from "../src/lib/seed";
 import { executeTool, type ToolDeps } from "../src/lib/assistant/execute";
-import { examAlerts } from "../src/lib/format";
+import { examAlerts, payStanding } from "../src/lib/format";
 import { findSimilar, similarity, SIMILAR_ENOUGH } from "../src/lib/similar";
 import type {
   Database,
@@ -388,7 +388,71 @@ check("findSimilar locates the existing course", findsIt.length === 1 && findsIt
 const skipsSelf = findSimilar(existingCourse, dupDb.groups, { skipId: dupDb.groups[0].id });
 check("renaming does not warn about itself", skipsSelf.length === 0);
 
+
+/* ----------------------------------------------------------- one student */
+
+console.log("\n9. Student profile and payment standing");
+
+const profDb = clone(seedDatabase);
+const target = profDb.students[0];
+const targetCourse = profDb.groups.find((g) => g.id === target.groupId);
+
+const prof = run(profDb, "get_student", { name: target.name });
+check("get_student succeeds", !prof.out.isError, prof.out.result);
+check("it returns the name", prof.data.name === target.name);
+check("it returns the current course", Boolean(prof.data.current_course));
+check("it returns a payment list", Array.isArray(prof.data.payments));
+check("it returns fee standing", Boolean(prof.data.fees));
+
+const firstName = target.name.split(" ")[0];
+const byFirstName = run(profDb, "get_student", { name: firstName });
+check("a first name is enough", !byFirstName.out.isError, byFirstName.out.result);
+
+const noSuch = run(profDb, "get_student", { name: "Nobody At All" });
+check("get_student refuses an unknown name", noSuch.out.isError);
+
+// payStanding is what drives the paid/unpaid badge.
+const paidUp = clone(seedDatabase);
+const p0 = paidUp.students[0];
+const c0 = paidUp.groups.find((g) => g.id === p0.groupId)!;
+paidUp.payments = [
+  {
+    id: "pay_full",
+    studentId: p0.id,
+    amount: c0.fee,
+    paidAt: new Date().toISOString().slice(0, 10),
+    note: "",
+    createdAt: new Date().toISOString(),
+  },
+];
+check("paying the fee reads as paid", payStanding(p0, paidUp).state === "paid");
+
+const nothing = clone(seedDatabase);
+nothing.payments = [];
+check("no payment reads as unpaid", payStanding(nothing.students[0], nothing).state === "unpaid");
+
+const halfway = clone(nothing);
+halfway.payments = [
+  {
+    id: "pay_half",
+    studentId: p0.id,
+    amount: Math.floor(c0.fee / 2),
+    paidAt: new Date().toISOString().slice(0, 10),
+    note: "",
+    createdAt: new Date().toISOString(),
+  },
+];
+check("a part payment reads as part", payStanding(p0, halfway).state === "part");
+
+const noCourse = clone(nothing);
+noCourse.students[0] = { ...noCourse.students[0], groupId: null };
+check(
+  "a student with no course is not called unpaid",
+  payStanding(noCourse.students[0], noCourse).state === "none",
+);
+
 /* ------------------------------------------------------------------ done */
+
 
 
 

@@ -388,11 +388,41 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           () => cloud!.addStudent(s),
           () => localStore.addStudent(s),
         ),
-      updateStudent: (id, patch) =>
+      updateStudent: (id, patch) => {
+        // Changing course closes the old enrolment rather than erasing it.
+        const before = dbRef.current.students.find((s) => s.id === id);
+        let next = patch;
+
+        if (
+          before &&
+          patch.groupId !== undefined &&
+          patch.groupId !== before.groupId
+        ) {
+          const today = new Date().toISOString().slice(0, 10);
+          const leaving = dbRef.current.groups.find(
+            (g) => g.id === before.groupId,
+          );
+          const history = [...(before.pastCourses ?? [])];
+          if (leaving) {
+            history.push({
+              groupId: leaving.id,
+              name: leaving.name,
+              from: before.enrolledAt,
+              to: today,
+            });
+          }
+          next = {
+            ...patch,
+            pastCourses: history,
+            enrolledAt: patch.groupId ? today : null,
+          };
+        }
+
         write(
-          () => cloud!.updateStudent(id, patch),
-          () => localStore.updateStudent(id, patch),
-        ),
+          () => cloud!.updateStudent(id, next),
+          () => localStore.updateStudent(id, next),
+        );
+      },
       removeStudent: (id) =>
         write(
           () => cloud!.removeStudent(id),
