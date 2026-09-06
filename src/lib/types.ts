@@ -93,6 +93,8 @@ export interface Payment {
   id: string;
   studentId: string;
   amount: number;
+  /** Its own, so a won payment can sit against a so'm course. */
+  currency: Currency;
   /** ISO date (YYYY-MM-DD). */
   paidAt: string;
   note: string;

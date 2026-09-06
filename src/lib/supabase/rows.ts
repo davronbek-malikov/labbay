@@ -47,6 +47,7 @@ export interface PaymentRow {
   teacher_id: string;
   student_id: string;
   amount: number;
+  currency: Currency;
   paid_at: string;
   note: string;
   created_at: string;
@@ -193,6 +194,7 @@ export const toPayment = (r: PaymentRow): Payment => ({
   id: r.id,
   studentId: r.student_id,
   amount: Number(r.amount),
+  currency: r.currency ?? "UZS",
   paidAt: r.paid_at,
   note: r.note ?? "",
   createdAt: r.created_at,
@@ -204,6 +206,7 @@ export function fromPayment(
   const row: Record<string, unknown> = {};
   if (p.studentId !== undefined) row.student_id = p.studentId;
   if (p.amount !== undefined) row.amount = p.amount;
+  if (p.currency !== undefined) row.currency = p.currency;
   if (p.paidAt !== undefined) row.paid_at = p.paidAt;
   if (p.note !== undefined) row.note = p.note;
   return row;

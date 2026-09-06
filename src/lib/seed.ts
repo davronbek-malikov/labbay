@@ -543,6 +543,7 @@ const payments: Payment[] = PAY.map(([studentId, amount, ago], i) => ({
   id: `pay_${i}`,
   studentId,
   amount,
+  currency: "UZS",
   paidAt: dateOnly(ago),
   note: "",
   createdAt: iso(ago),

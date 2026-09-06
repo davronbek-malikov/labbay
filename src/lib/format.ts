@@ -115,15 +115,9 @@ export function financeSummary(
   const bucket = (c: Currency): MoneyTotals =>
     (byCurrency[c] ??= { income: 0, expense: 0, net: 0, feeIncome: 0 });
 
-  const currencyOfStudent = (studentId: string): Currency => {
-    const student = db.students.find((s) => s.id === studentId);
-    const group = db.groups.find((g) => g.id === student?.groupId);
-    return group?.currency ?? "UZS";
-  };
-
   for (const p of db.payments) {
     if (p.paidAt < cutoff) continue;
-    const b = bucket(currencyOfStudent(p.studentId));
+    const b = bucket(p.currency ?? "UZS");
     b.feeIncome += p.amount;
     b.income += p.amount;
   }
@@ -188,28 +182,44 @@ export type PayState = "paid" | "part" | "unpaid" | "none";
 
 export interface PayStanding {
   state: PayState;
+  /** Paid in the course's own currency. */
   paid: number;
   fee: number;
   owed: number;
   currency: Currency;
+  /** Anything paid in a different currency, which cannot count towards the fee. */
+  alsoPaid: Array<{ currency: Currency; amount: number }>;
   /** What to show on a badge. */
   label: string;
 }
 
 /**
- * A student has no fee of their own — it comes from the course they are on,
- * so "unpaid" is only meaningful once they have one.
+ * Where a student stands on their course fee.
+ *
+ * Only payments in the course's own currency count towards it — adding won to
+ * so'm would produce a number that means nothing. Anything paid in another
+ * currency is reported separately rather than silently dropped.
  */
 export function payStanding(
   student: Student,
   db: Pick<Database, "groups" | "payments">,
 ): PayStanding {
   const course = db.groups.find((g) => g.id === student.groupId);
-  const paid = db.payments
-    .filter((p) => p.studentId === student.id)
+  const currency: Currency = course?.currency ?? "UZS";
+  const mine = db.payments.filter((p) => p.studentId === student.id);
+
+  const paid = mine
+    .filter((p) => (p.currency ?? "UZS") === currency)
     .reduce((sum, p) => sum + p.amount, 0);
 
-  const currency = course?.currency ?? "UZS";
+  const others = new Map<Currency, number>();
+  for (const p of mine) {
+    const c = p.currency ?? "UZS";
+    if (c === currency) continue;
+    others.set(c, (others.get(c) ?? 0) + p.amount);
+  }
+  const alsoPaid = [...others].map(([c, amount]) => ({ currency: c, amount }));
+
   const fee = course?.fee ?? 0;
 
   if (!course || fee <= 0) {
@@ -219,12 +229,14 @@ export function payStanding(
       fee,
       owed: 0,
       currency,
+      alsoPaid,
       label: paid > 0 ? money(paid, currency) : "No fee set",
     };
   }
 
   const owed = Math.max(0, fee - paid);
-  if (owed === 0) return { state: "paid", paid, fee, owed, currency, label: "Paid" };
+  if (owed === 0)
+    return { state: "paid", paid, fee, owed, currency, alsoPaid, label: "Paid" };
   if (paid > 0)
     return {
       state: "part",
@@ -232,9 +244,10 @@ export function payStanding(
       fee,
       owed,
       currency,
+      alsoPaid,
       label: `${money(owed, currency)} left`,
     };
-  return { state: "unpaid", paid, fee, owed, currency, label: "Unpaid" };
+  return { state: "unpaid", paid, fee, owed, currency, alsoPaid, label: "Unpaid" };
 }
 
 export function paymentsOf(studentId: string, payments: Payment[]): Payment[] {
