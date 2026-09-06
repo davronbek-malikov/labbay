@@ -245,9 +245,12 @@ export function executeTool(
           fee: standing.fee ? money(standing.fee, standing.currency) : null,
           paid: money(standing.paid, standing.currency),
           outstanding: money(standing.owed, standing.currency),
+          also_paid_in_other_currencies: standing.alsoPaid.map((o) =>
+            money(o.amount, o.currency),
+          ),
         },
         payments: history.map((p) => ({
-          amount: money(p.amount, standing.currency),
+          amount: money(p.amount, p.currency ?? standing.currency),
           when: p.paidAt,
           note: p.note || undefined,
         })),
@@ -440,20 +443,25 @@ export function executeTool(
       if (!student) return fail(`No student called "${who}".`);
 
       const paidAt = str(input.paid_at) ?? new Date().toISOString().slice(0, 10);
+      const course = db.groups.find((g) => g.id === student.groupId);
+      // Defaults to whatever the course is priced in, but a student may pay in
+      // another currency and that has to be recorded as it happened.
+      const currency = (str(input.currency) as Currency) ?? course?.currency ?? "UZS";
+
       deps.addPayment({
         studentId: student.id,
         amount,
+        currency,
         paidAt,
         note: str(input.note) ?? "",
       });
-      const course = db.groups.find((g) => g.id === student.groupId);
       return ok(
         {
           student: student.name,
-          amount: money(amount, course?.currency),
+          amount: money(amount, currency),
           paid_at: paidAt,
         },
-        `Recorded ${money(amount, course?.currency)} from ${student.name}`,
+        `Recorded ${money(amount, currency)} from ${student.name}`,
       );
     }
 

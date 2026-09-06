@@ -196,6 +196,11 @@ export const ASSISTANT_TOOLS: ToolSpec[] = [
       properties: {
         student_name: { type: "string" },
         amount: { type: "number" },
+        currency: {
+          type: "string",
+          enum: ["UZS", "USD", "KRW"],
+          description: "Defaults to the currency the course is priced in.",
+        },
         paid_at: { type: "string", description: "YYYY-MM-DD. Defaults to today." },
         note: { type: "string" },
       },

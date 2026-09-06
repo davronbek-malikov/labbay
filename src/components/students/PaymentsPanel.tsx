@@ -1,18 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Drawer, Field, Input, cx } from "@/components/ui";
+import { Button, Drawer, Field, Input, Select, cx } from "@/components/ui";
 import { useStore } from "@/lib/store/StoreProvider";
 import {
   CURRENCIES,
   groupOf,
   initials,
+  payStanding,
   longDate,
   money,
   paymentsOf,
   totalPaid,
 } from "@/lib/format";
-import type { Student } from "@/lib/types";
+import type { Currency, Student } from "@/lib/types";
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -32,24 +33,31 @@ export function PaymentsPanel({
   const [paidAt, setPaidAt] = useState(today());
   const [note, setNote] = useState("");
   const [adding, setAdding] = useState(false);
+  // Defaults to the course currency, but a student can pay in another.
+  const [payCurrency, setPayCurrency] = useState<Currency | null>(null);
 
   if (!student) return null;
 
   const course = groupOf(student, db.groups);
   const history = paymentsOf(student.id, db.payments);
-  const paid = totalPaid(student.id, db.payments);
-  const fee = course?.fee ?? 0;
-  const currency = course?.currency ?? "UZS";
-  const owed = Math.max(0, fee - paid);
+  const standing = payStanding(student, db);
+  const { paid, fee, owed, currency } = standing;
   const pct = fee === 0 ? 0 : Math.min(100, Math.round((paid / fee) * 100));
 
   const record = () => {
     const value = Number(amount.replace(/\D/g, ""));
     if (!value) return;
-    addPayment({ studentId: student.id, amount: value, paidAt, note: note.trim() });
+    addPayment({
+      studentId: student.id,
+      amount: value,
+      currency: payCurrency ?? currency,
+      paidAt,
+      note: note.trim(),
+    });
     setAmount("");
     setNote("");
     setPaidAt(today());
+    setPayCurrency(null);
     setAdding(false);
   };
 
@@ -120,16 +128,41 @@ export function PaymentsPanel({
         <div className="set-card p-5 mt-4 space-y-4">
           <Field
             label="How much"
-            hint={`In ${CURRENCIES.find((c) => c.value === currency)?.label ?? currency}.`}
+            hint={
+              (payCurrency ?? currency) === currency
+                ? "The course is priced in this currency."
+                : "A different currency to the course, so it will be listed separately."
+            }
           >
-            <Input
-              inputMode="numeric"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value.replace(/\D/g, ""))}
-              placeholder={currency === "USD" ? "150" : "600000"}
-              className="tabular"
-              autoFocus
-            />
+            {/* Both controls are w-full, so the wrappers own the widths. */}
+            <div className="flex gap-2 items-stretch">
+              <div className="flex-1 min-w-0">
+                <Input
+                  inputMode="numeric"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value.replace(/\D/g, ""))}
+                  placeholder={
+                    (payCurrency ?? currency) === "USD" ? "150" : "600000"
+                  }
+                  className="tabular"
+                  autoFocus
+                />
+              </div>
+              <div className="w-[124px] shrink-0">
+                <Select
+                  value={payCurrency ?? currency}
+                  onChange={(e) => setPayCurrency(e.target.value as Currency)}
+                  aria-label="Currency"
+                  className="px-3"
+                >
+                  {CURRENCIES.map((c) => (
+                    <option key={c.value} value={c.value}>
+                      {c.short === "so'm" ? "So'm" : c.short === "$" ? "USD" : "Won"}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            </div>
           </Field>
           <Field label="When">
             <Input
@@ -157,6 +190,17 @@ export function PaymentsPanel({
         </div>
       ) : null}
 
+      {standing.alsoPaid.length > 0 ? (
+        <p className="text-[12.5px] text-muted mt-3 px-1">
+          Also paid{" "}
+          {standing.alsoPaid
+            .map((o) => money(o.amount, o.currency))
+            .join(", ")}
+          , which cannot count towards a fee in{" "}
+          {CURRENCIES.find((c) => c.value === currency)?.short ?? currency}.
+        </p>
+      ) : null}
+
       {/* History */}
       <p className="label mt-7 mb-2 px-1">
         {history.length === 0
@@ -174,7 +218,7 @@ export function PaymentsPanel({
             <div key={p.id} className="set-row" style={{ cursor: "default" }}>
               <span className="set-text">
                 <span className="set-title block tabular">
-                  {money(p.amount, currency)}
+                  {money(p.amount, p.currency ?? currency)}
                 </span>
                 <span className="set-sub block">
                   {longDate(p.paidAt)}
@@ -184,7 +228,7 @@ export function PaymentsPanel({
               <button
                 type="button"
                 onClick={() => {
-                  if (confirm(`Delete the ${money(p.amount, currency)} payment?`))
+                  if (confirm(`Delete the ${money(p.amount, p.currency ?? currency)} payment?`))
                     removePayment(p.id);
                 }}
                 className="text-[12.5px] font-semibold text-faint hover:text-clay shrink-0"
