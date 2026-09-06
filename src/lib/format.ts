@@ -183,6 +183,60 @@ export function examAlerts(
     .sort((a, b) => a.daysAway - b.daysAway);
 }
 
+/** Where a student stands on their course fee. */
+export type PayState = "paid" | "part" | "unpaid" | "none";
+
+export interface PayStanding {
+  state: PayState;
+  paid: number;
+  fee: number;
+  owed: number;
+  currency: Currency;
+  /** What to show on a badge. */
+  label: string;
+}
+
+/**
+ * A student has no fee of their own — it comes from the course they are on,
+ * so "unpaid" is only meaningful once they have one.
+ */
+export function payStanding(
+  student: Student,
+  db: Pick<Database, "groups" | "payments">,
+): PayStanding {
+  const course = db.groups.find((g) => g.id === student.groupId);
+  const paid = db.payments
+    .filter((p) => p.studentId === student.id)
+    .reduce((sum, p) => sum + p.amount, 0);
+
+  const currency = course?.currency ?? "UZS";
+  const fee = course?.fee ?? 0;
+
+  if (!course || fee <= 0) {
+    return {
+      state: "none",
+      paid,
+      fee,
+      owed: 0,
+      currency,
+      label: paid > 0 ? money(paid, currency) : "No fee set",
+    };
+  }
+
+  const owed = Math.max(0, fee - paid);
+  if (owed === 0) return { state: "paid", paid, fee, owed, currency, label: "Paid" };
+  if (paid > 0)
+    return {
+      state: "part",
+      paid,
+      fee,
+      owed,
+      currency,
+      label: `${money(owed, currency)} left`,
+    };
+  return { state: "unpaid", paid, fee, owed, currency, label: "Unpaid" };
+}
+
 export function paymentsOf(studentId: string, payments: Payment[]): Payment[] {
   return payments
     .filter((p) => p.studentId === studentId)

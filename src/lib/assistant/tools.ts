@@ -15,6 +15,17 @@ export const ASSISTANT_TOOLS: ToolSpec[] = [
     input_schema: { type: "object", properties: {}, additionalProperties: false },
   },
   {
+    name: "get_student",
+    description:
+      "Everything about one student: contact, the course they are on and when they started, courses they took before, every payment with its date and amount, what is still owed, the teacher's own fields, and recent messages. Use this for any question about one person, such as \"tell me about Ali\" or \"when did Ali pay\".",
+    input_schema: {
+      type: "object",
+      properties: { name: { type: "string" } },
+      required: ["name"],
+      additionalProperties: false,
+    },
+  },
+  {
     name: "list_students",
     description:
       "List students with their group, level, notes, status, and how long since they last heard from the teacher.",
@@ -466,6 +477,7 @@ What you can do:
 - Take them to any screen with navigate_to when they ask where something is or how to get there.
 - Build and edit the course plan: levels, the lessons in them, topics and homework. Teachers name levels however they like.
 - Keep the teacher's own fields on each student up to date.
+- Answer anything about one student with get_student — it carries their course history, every payment, and what they still owe.
 - Answer money questions: who has paid, who still owes, how much a course has collected, and what the teacher earned or spent.
 - Record income and expenses when asked ("I paid 200000 for books", "add 500000 income from a private lesson").
 - Amounts default to Uzbek so'm unless the course or the teacher says otherwise.

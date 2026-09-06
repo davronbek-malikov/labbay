@@ -11,7 +11,6 @@ import { cx } from "@/components/ui";
 const LINKS = [
   { href: "/students", label: "People" },
   { href: "/send", label: "Send now" },
-  { href: "/nudges", label: "Nudges" },
   { href: "/messages", label: "Messages" },
 ];
 

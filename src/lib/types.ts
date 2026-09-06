@@ -79,6 +79,15 @@ export interface Transaction {
   createdAt: string;
 }
 
+/** A course a student has finished or moved on from. */
+export interface PastCourse {
+  groupId: string;
+  /** Copied in, so the history survives the course being deleted. */
+  name: string;
+  from: string | null;
+  to: string;
+}
+
 /** One payment a student made towards their course fee. */
 export interface Payment {
   id: string;
@@ -101,6 +110,10 @@ export interface Student {
   level: string;
   /** Which level of the course syllabus they are working through. */
   levelId: string | null;
+  /** When they joined their current course. */
+  enrolledAt: string | null;
+  /** Courses they were on before this one, newest last. */
+  pastCourses: PastCourse[];
   /**
    * Anything this teacher wants to track — parent's phone, school, target
    * band. Free-form so a maths tutor and a language tutor can both use it.

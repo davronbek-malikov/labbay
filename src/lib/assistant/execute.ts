@@ -1,5 +1,6 @@
 import {
   audienceOf,
+  payStanding,
   examAlerts,
   financeSummary,
   groupNameOf,
@@ -194,6 +195,69 @@ export function executeTool(
       });
     }
 
+    case "get_student": {
+      const who = str(input.name);
+      if (!who) return fail("name is required.");
+      const student = findStudent(db, who);
+      if (!student) return fail(`No student called "${who}".`);
+
+      const course = db.groups.find((g) => g.id === student.groupId);
+      const standing = payStanding(student, db);
+      const history = paymentsOf(student.id, db.payments);
+      const level = course?.syllabus?.find((l) => l.id === student.levelId);
+
+      const recent = db.messages
+        .filter((m) => m.studentId === student.id)
+        .sort(
+          (a, b) =>
+            new Date(b.sentAt ?? b.scheduledAt).getTime() -
+            new Date(a.sentAt ?? a.scheduledAt).getTime(),
+        )
+        .slice(0, 5)
+        .map((m) => ({
+          when: m.sentAt ?? m.scheduledAt,
+          status: m.status,
+          text: m.text,
+        }));
+
+      return ok({
+        name: student.name,
+        telegram: student.telegram || null,
+        status: student.status,
+        subject: student.subject || null,
+        level: level?.name ?? student.level ?? null,
+        current_course: course
+          ? {
+              name: course.name,
+              kind: course.kind,
+              started: student.enrolledAt,
+              ends: course.endDate,
+              final_exam: course.finalExamDate,
+            }
+          : null,
+        past_courses: (student.pastCourses ?? []).map((c) => ({
+          name: c.name,
+          from: c.from,
+          to: c.to,
+        })),
+        fees: {
+          state: standing.state,
+          fee: standing.fee ? money(standing.fee, standing.currency) : null,
+          paid: money(standing.paid, standing.currency),
+          outstanding: money(standing.owed, standing.currency),
+        },
+        payments: history.map((p) => ({
+          amount: money(p.amount, standing.currency),
+          when: p.paidAt,
+          note: p.note || undefined,
+        })),
+        teacher_fields: student.fields ?? {},
+        notes_for_the_agent: student.aiNotes || null,
+        last_heard_from_you: since(student.lastContactedAt),
+        recent_messages: recent,
+      });
+    }
+
     case "list_students": {
       const group = str(input.group);
       const status = str(input.status);
@@ -272,6 +336,8 @@ export function executeTool(
         level: str(input.level) ?? "",
         levelId: null,
         fields: {},
+        enrolledAt: groupId ? new Date().toISOString().slice(0, 10) : null,
+        pastCourses: [],
         aiNotes: str(input.ai_notes) ?? "",
         status: "active",
         groupId,
