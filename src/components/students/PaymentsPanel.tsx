@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Drawer, Field, Input, Select, cx } from "@/components/ui";
 import { useStore } from "@/lib/store/StoreProvider";
 import {
@@ -24,17 +24,31 @@ const today = () => new Date().toISOString().slice(0, 10);
 export function PaymentsPanel({
   student,
   onClose,
+  startAdding = false,
 }: {
   student: Student | null;
   onClose: () => void;
+  /** Open with the form already showing, when the teacher asked to add one. */
+  startAdding?: boolean;
 }) {
   const { db, addPayment, removePayment } = useStore();
   const [amount, setAmount] = useState("");
   const [paidAt, setPaidAt] = useState(today());
   const [note, setNote] = useState("");
-  const [adding, setAdding] = useState(false);
+  const [adding, setAdding] = useState(startAdding);
   // Defaults to the course currency, but a student can pay in another.
   const [payCurrency, setPayCurrency] = useState<Currency | null>(null);
+
+  // The panel stays mounted between openings, so the initial state alone would
+  // only ever be honoured the first time.
+  useEffect(() => {
+    if (student) {
+      setAdding(startAdding);
+      setAmount("");
+      setNote("");
+      setPayCurrency(null);
+    }
+  }, [student, startAdding]);
 
   if (!student) return null;
 

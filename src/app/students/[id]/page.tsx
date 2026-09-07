@@ -30,6 +30,7 @@ export default function StudentProfilePage() {
 
   const [editing, setEditing] = useState<Student | null>(null);
   const [paying, setPaying] = useState<Student | null>(null);
+  const [payingStraightIn, setPayingStraightIn] = useState(false);
   const [text, setText] = useState("");
   const [sent, setSent] = useState<string | null>(null);
 
@@ -94,11 +95,15 @@ export default function StudentProfilePage() {
       action={
         <div className="flex gap-2">
           <Button onClick={() => setEditing(student)}>Edit</Button>
-          {course ? (
-            <Button variant="primary" onClick={() => setPaying(student)}>
-              Payments
-            </Button>
-          ) : null}
+          <Button
+            variant="primary"
+            onClick={() => {
+              setPayingStraightIn(true);
+              setPaying(student);
+            }}
+          >
+            Add payment
+          </Button>
         </div>
       }
     >
@@ -211,6 +216,26 @@ export default function StudentProfilePage() {
               {money(pay.paid, pay.currency)} of {money(pay.fee, pay.currency)}
             </p>
           ) : null}
+
+          <div className="flex flex-wrap gap-2 mt-4">
+            <Button
+              variant="primary"
+              onClick={() => {
+                setPayingStraightIn(true);
+                setPaying(student);
+              }}
+            >
+              Add payment
+            </Button>
+            <Button
+              onClick={() => {
+                setPayingStraightIn(false);
+                setPaying(student);
+              }}
+            >
+              History
+            </Button>
+          </div>
         </div>
 
         <div className="card p-5">
@@ -444,7 +469,14 @@ export default function StudentProfilePage() {
         groupId={null}
         onClose={() => setEditing(null)}
       />
-      <PaymentsPanel student={paying} onClose={() => setPaying(null)} />
+      <PaymentsPanel
+        student={paying}
+        startAdding={payingStraightIn}
+        onClose={() => {
+          setPaying(null);
+          setPayingStraightIn(false);
+        }}
+      />
     </Page>
   );
 }
