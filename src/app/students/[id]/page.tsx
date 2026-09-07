@@ -134,28 +134,6 @@ export default function StudentProfilePage() {
         </Badge>
       </div>
 
-      {/* The four numbers that matter */}
-      <section className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
-        <Stat label="Paid" value={money(paid, currency)} />
-        <Stat
-          label={owed > 0 ? "Still to pay" : "Balance"}
-          value={course ? money(owed, currency) : "—"}
-          tone={owed > 0 ? "clay" : "accent"}
-        />
-        <Stat label="Messages sent" value={String(delivered)} />
-        <Stat
-          label="Last heard from you"
-          value={since(student.lastContactedAt)}
-          tone={
-            student.lastContactedAt &&
-            Date.now() - new Date(student.lastContactedAt).getTime() >
-              7 * 86_400_000
-              ? "clay"
-              : "neutral"
-          }
-        />
-      </section>
-
       {/* Write to them */}
       <section className="card p-5 mt-4">
         <p className="label mb-2.5">Send a message</p>
@@ -425,7 +403,7 @@ export default function StudentProfilePage() {
         <p className="label mb-2 px-1">
           {messages.length === 0
             ? "No messages yet"
-            : `${messages.length} message${messages.length === 1 ? "" : "s"}`}
+            : `${messages.length} message${messages.length === 1 ? "" : "s"} · ${delivered} delivered`}
         </p>
         {messages.length > 0 ? (
           <ul className="space-y-2">
@@ -478,30 +456,6 @@ export default function StudentProfilePage() {
         }}
       />
     </Page>
-  );
-}
-
-function Stat({
-  label,
-  value,
-  tone = "neutral",
-}: {
-  label: string;
-  value: string;
-  tone?: "neutral" | "clay" | "accent";
-}) {
-  return (
-    <div className="card px-4 py-4">
-      <p
-        className={cx(
-          "figure text-[19px]",
-          tone === "clay" ? "text-clay" : tone === "accent" ? "text-accent" : "text-ink",
-        )}
-      >
-        {value}
-      </p>
-      <p className="label mt-2">{label}</p>
-    </div>
   );
 }
 
