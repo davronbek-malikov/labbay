@@ -136,22 +136,34 @@ export default function StudentsPage() {
                   </span>
                 </span>
 
-                {/* One mark, read at a glance: green paid, red not. */}
+                {/* One mark, read at a glance. */}
                 {pay.state === "none" ? null : (
                   <span className="flex items-center gap-2 shrink-0">
                     <span
                       className={cx(
                         "w-2 h-2 rounded-full",
-                        pay.state === "paid" ? "bg-accent" : "bg-clay",
+                        pay.state === "paid"
+                          ? "bg-accent"
+                          : pay.state === "part"
+                            ? "bg-chip-amber"
+                            : "bg-clay",
                       )}
                     />
                     <span
                       className={cx(
                         "text-[12.5px] font-semibold",
-                        pay.state === "paid" ? "text-accent" : "text-clay",
+                        pay.state === "paid"
+                          ? "text-accent"
+                          : pay.state === "part"
+                            ? "text-chip-amber"
+                            : "text-clay",
                       )}
                     >
-                      {pay.state === "paid" ? "Paid" : "Unpaid"}
+                      {pay.state === "paid"
+                        ? "Paid"
+                        : pay.state === "part"
+                          ? pay.label
+                          : "Unpaid"}
                     </span>
                   </span>
                 )}

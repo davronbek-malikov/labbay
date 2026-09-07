@@ -149,6 +149,34 @@ check("a won course reads in won", wst.currency === "KRW");
 check("paying it in won reads as paid", wst.state === "paid");
 check("the badge never says so'm", !wst.label.includes("so'm"), wst.label);
 
+/* ------------------------------------- a payment with no fee to measure --- */
+
+const noFee = clone(seedDatabase);
+const ns = noFee.students[0];
+const nc = noFee.groups.find((g) => g.id === ns.groupId)!;
+nc.fee = 0;
+noFee.payments = [
+  {
+    id: "p_nofee",
+    studentId: ns.id,
+    amount: 100_000,
+    currency: "UZS",
+    paidAt: "2026-03-05",
+    note: "",
+    createdAt: "2026-03-05",
+  },
+];
+const nst = payStanding(ns, noFee);
+check("paying with no fee set still reads as paid", nst.state === "paid", nst.state);
+check("the amount is what is shown", nst.label.includes("100 000"), nst.label);
+
+const nothingAtAll = clone(noFee);
+nothingAtAll.payments = [];
+check(
+  "no fee and no payment shows nothing",
+  payStanding(nothingAtAll.students[0], nothingAtAll).state === "none",
+);
+
 /* --------------------------------------------------- through the assistant */
 
 const recKrw = run(curDb, "record_payment", {
