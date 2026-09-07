@@ -223,14 +223,18 @@ export function payStanding(
   const fee = course?.fee ?? 0;
 
   if (!course || fee <= 0) {
+    // With no fee to measure against, having handed over money is the whole
+    // story — and it is still worth showing as paid.
+    const total = paid > 0 ? paid : alsoPaid[0]?.amount ?? 0;
+    const totalCurrency = paid > 0 ? currency : alsoPaid[0]?.currency ?? currency;
     return {
-      state: "none",
+      state: total > 0 ? "paid" : "none",
       paid,
       fee,
       owed: 0,
       currency,
       alsoPaid,
-      label: paid > 0 ? money(paid, currency) : "No fee set",
+      label: total > 0 ? money(total, totalCurrency) : "No fee set",
     };
   }
 
