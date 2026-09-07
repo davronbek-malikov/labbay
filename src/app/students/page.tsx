@@ -123,10 +123,6 @@ export default function StudentsPage() {
           {people.map((st) => {
             const course = db.groups.find((g) => g.id === st.groupId);
             const pay = payStanding(st, db);
-            const quiet =
-              !st.lastContactedAt ||
-              new Date(st.lastContactedAt).getTime() < weekAgo;
-
             return (
               <Link key={st.id} href={`/students/${st.id}`} className="set-row">
                 <span className="w-10 h-10 shrink-0 rounded-full bg-mint text-forest grid place-items-center text-[12px] font-bold">
@@ -137,31 +133,28 @@ export default function StudentsPage() {
                   <span className="set-title block">{st.name}</span>
                   <span className="set-sub block">
                     {course?.name ?? "No course"}
-                    {st.telegram ? ` · ${st.telegram}` : ""}
                   </span>
                 </span>
 
-                <span className="flex items-center gap-2 shrink-0">
-                  <span
-                    className={cx(
-                      "tabular text-[12px] hidden sm:inline",
-                      quiet ? "text-clay" : "text-faint",
-                    )}
-                  >
-                    {since(st.lastContactedAt)}
+                {/* One mark, read at a glance: green paid, red not. */}
+                {pay.state === "none" ? null : (
+                  <span className="flex items-center gap-2 shrink-0">
+                    <span
+                      className={cx(
+                        "w-2 h-2 rounded-full",
+                        pay.state === "paid" ? "bg-accent" : "bg-clay",
+                      )}
+                    />
+                    <span
+                      className={cx(
+                        "text-[12.5px] font-semibold",
+                        pay.state === "paid" ? "text-accent" : "text-clay",
+                      )}
+                    >
+                      {pay.state === "paid" ? "Paid" : "Unpaid"}
+                    </span>
                   </span>
-                  <Badge
-                    tone={
-                      pay.state === "paid"
-                        ? "accent"
-                        : pay.state === "none"
-                          ? "quiet"
-                          : "clay"
-                    }
-                  >
-                    {pay.label}
-                  </Badge>
-                </span>
+                )}
               </Link>
             );
           })}

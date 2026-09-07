@@ -36,7 +36,7 @@ const MOBILE_NAV = NAV;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { db, ready, signedIn } = useStore();
+  const { db, ready, signedIn, lastError, clearError } = useStore();
   const isActive = (href: string) =>
     href === "/students"
       ? STUDENT_PAGES.some((p) => pathname.startsWith(p))
@@ -118,6 +118,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <IconSettings className="w-5 h-5" />
         </Link>
       </header>
+
+      {/* A failed save must never pass unnoticed. */}
+      {lastError ? (
+        <div
+          role="alert"
+          className="fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-50 max-w-[min(560px,92vw)] rounded-[18px] bg-clay text-white px-5 py-4 lift"
+        >
+          <p className="text-[13.5px] font-bold">That did not save</p>
+          <p className="text-[12.5px] text-white/85 mt-1 leading-relaxed break-words">
+            {lastError}
+          </p>
+          <button
+            type="button"
+            onClick={clearError}
+            className="mt-2.5 text-[12.5px] font-bold underline underline-offset-2"
+          >
+            Dismiss
+          </button>
+        </div>
+      ) : null}
 
       <main className="flex-1 min-w-0 pb-24 md:pb-0 md:pr-3 md:py-3">
         <div className="md:card md:min-h-[calc(100dvh-1.5rem)]">{children}</div>

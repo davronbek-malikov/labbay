@@ -10,6 +10,7 @@ import { Badge, Button, Textarea, cx } from "@/components/ui";
 import { useStore } from "@/lib/store/StoreProvider";
 import {
   dateTime,
+  daysUntil,
   groupOf,
   payStanding,
   initials,
@@ -34,6 +35,7 @@ export default function StudentProfilePage() {
 
   const student = db.students.find((s) => s.id === params.id);
   const course = student ? groupOf(student, db.groups) : undefined;
+  const examDays = course?.finalExamDate ? daysUntil(course.finalExamDate) : null;
   const pay = student
     ? payStanding(student, db)
     : { state: "none" as const, paid: 0, fee: 0, owed: 0, currency: "UZS" as const, label: "" };
@@ -216,13 +218,37 @@ export default function StudentProfilePage() {
           <p className="text-[15px] font-bold mt-2">
             {course?.name ?? "Not on a course"}
           </p>
-          <p className="text-[12.5px] text-muted mt-1">
-            {student.enrolledAt
-              ? `Started ${longDate(student.enrolledAt)}`
-              : course
-                ? "Start date not recorded"
-                : "Add one when you are ready"}
-          </p>
+          {course ? (
+            <dl className="mt-2 space-y-1">
+              <div className="flex justify-between gap-2 text-[12.5px]">
+                <dt className="text-muted">Started</dt>
+                <dd className="tabular">
+                  {student.enrolledAt ? longDate(student.enrolledAt) : "—"}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-2 text-[12.5px]">
+                <dt className="text-muted">Ends</dt>
+                <dd className="tabular">{longDate(course.endDate)}</dd>
+              </div>
+              <div className="flex justify-between gap-2 text-[12.5px]">
+                <dt className="text-muted">Final exam</dt>
+                <dd
+                  className={cx(
+                    "tabular",
+                    examDays !== null && examDays >= 0 && examDays <= 14
+                      ? "text-clay font-semibold"
+                      : "",
+                  )}
+                >
+                  {longDate(course.finalExamDate)}
+                </dd>
+              </div>
+            </dl>
+          ) : (
+            <p className="text-[12.5px] text-muted mt-1">
+              Add one when you are ready
+            </p>
+          )}
         </div>
 
         <div className="card p-5">
