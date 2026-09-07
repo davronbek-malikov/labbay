@@ -58,6 +58,19 @@ export function PaymentsPanel({
   const { paid, fee, owed, currency } = standing;
   const pct = fee === 0 ? 0 : Math.min(100, Math.round((paid / fee) * 100));
 
+  // Every currency this student has actually paid in, biggest first. A single
+  // figure would have to pick one, and would be wrong for the others.
+  const totals = (() => {
+    const sums = new Map<Currency, number>();
+    for (const p of history) {
+      const c = p.currency ?? currency;
+      sums.set(c, (sums.get(c) ?? 0) + p.amount);
+    }
+    return [...sums]
+      .map(([c, amount]) => ({ currency: c, amount }))
+      .sort((a, b) => b.amount - a.amount);
+  })();
+
   const record = () => {
     const value = Number(amount.replace(/\D/g, ""));
     if (!value) return;
@@ -111,11 +124,24 @@ export function PaymentsPanel({
         </div>
       </div>
 
-      {/* Where they stand */}
+      {/* Where they stand, in whatever currencies they have actually paid in. */}
       <div className="card-mint p-5">
-        <p className="figure text-[30px] text-forest">{money(paid, currency)}</p>
+        {totals.length === 0 ? (
+          <p className="figure text-[30px] text-forest">
+            {money(0, currency)}
+          </p>
+        ) : (
+          <div className="space-y-1">
+            {totals.map((t) => (
+              <p key={t.currency} className="figure text-[30px] text-forest">
+                {money(t.amount, t.currency)}
+              </p>
+            ))}
+          </div>
+        )}
+
         <p className="text-[13px] text-forest/70 mt-1">
-          {fee > 0 ? `paid of ${money(fee, currency)}` : "paid so far"}
+          {totals.length > 1 ? "paid so far, in each currency" : "paid so far"}
         </p>
 
         {fee > 0 ? (
@@ -132,8 +158,17 @@ export function PaymentsPanel({
                 owed === 0 ? "text-forest" : "text-clay",
               )}
             >
-              {owed === 0 ? "Paid in full" : `${money(owed, currency)} still to pay`}
+              {owed === 0
+                ? "Paid in full"
+                : `${money(owed, currency)} still to pay`}
             </p>
+            {standing.alsoPaid.length > 0 ? (
+              <p className="text-[12.5px] text-forest/70 mt-1.5 leading-relaxed">
+                The course is priced in{" "}
+                {CURRENCIES.find((c) => c.value === currency)?.short ?? currency}
+                , so payments in another currency are not counted against it.
+              </p>
+            ) : null}
           </>
         ) : null}
       </div>
@@ -202,17 +237,6 @@ export function PaymentsPanel({
             </button>
           ) : null}
         </div>
-      ) : null}
-
-      {standing.alsoPaid.length > 0 ? (
-        <p className="text-[12.5px] text-muted mt-3 px-1">
-          Also paid{" "}
-          {standing.alsoPaid
-            .map((o) => money(o.amount, o.currency))
-            .join(", ")}
-          , which cannot count towards a fee in{" "}
-          {CURRENCIES.find((c) => c.value === currency)?.short ?? currency}.
-        </p>
       ) : null}
 
       {/* History */}
