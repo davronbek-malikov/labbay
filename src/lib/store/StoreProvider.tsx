@@ -42,6 +42,9 @@ interface StoreValue {
   mode: StoreMode;
   /** In cloud mode, false until someone signs in. Always true in local mode. */
   signedIn: boolean;
+  /** The last write that failed, so the app can say so instead of going quiet. */
+  lastError: string | null;
+  clearError(): void;
   email: string | null;
 
   signUp(name: string, email: string, password: string): Promise<string | null>;
@@ -91,6 +94,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [db, setDb] = useState<Database>(mode === "cloud" ? EMPTY : seedDatabase);
   const [ready, setReady] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [lastError, setLastError] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
 
   // Held in a ref so callbacks never capture a stale database.
@@ -204,9 +208,23 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   // Each write goes to whichever store is active, then refreshes.
   const write = useCallback(
     (cloudOp: () => Promise<unknown>, localOp: () => void) => {
-      if (cloud) void cloudOp().then(() => reload());
-      else {
-        localOp();
+      if (cloud) {
+        void cloudOp()
+          .then(() => {
+            setLastError(null);
+            return reload();
+          })
+          .catch((e: unknown) => {
+            // Silence here is what made a failed save look like a save.
+            setLastError(e instanceof Error ? e.message : "That could not be saved.");
+          });
+      } else {
+        try {
+          localOp();
+          setLastError(null);
+        } catch (e) {
+          setLastError(e instanceof Error ? e.message : "That could not be saved.");
+        }
         void reload();
       }
     },
@@ -339,6 +357,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       ready,
       mode,
       signedIn: mode === "local" ? true : Boolean(userId),
+      lastError,
+      clearError: () => setLastError(null),
       email,
       signUp,
       signIn,
@@ -478,6 +498,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       ready,
       mode,
       userId,
+      lastError,
       email,
       cloud,
       write,

@@ -34,6 +34,18 @@ import type {
 } from "@/lib/types";
 
 /**
+ * Turns a Supabase result into an exception.
+ *
+ * Every write used to ignore its `error`, so a rejected insert — a missing
+ * column, a policy refusal — looked exactly like success and the teacher was
+ * left staring at a form that did nothing.
+ */
+function must<T extends { error: { message: string } | null }>(result: T): T {
+  if (result.error) throw new Error(result.error.message);
+  return result;
+}
+
+/**
  * The real store. Everything is scoped to the signed-in teacher by row level
  * security, so no query here has to filter by teacher — the database does it.
  */
@@ -103,99 +115,99 @@ export class SupabaseStore {
   }
 
   async setTeacherName(name: string): Promise<void> {
-    await supabase()
+    must(await supabase()
       .from("profiles")
       .upsert({ id: this.teacherId, name })
-      .eq("id", this.teacherId);
+      .eq("id", this.teacherId));
   }
 
   async addGroup(group: Omit<Group, "id" | "createdAt">): Promise<string | null> {
-    const { data } = await supabase()
+    const { data } = must(await supabase()
       .from("groups")
       .insert({ ...fromGroup(group), teacher_id: this.teacherId })
       .select("id")
-      .single();
+      .single());
     return (data as { id: string } | null)?.id ?? null;
   }
 
   async updateGroup(id: string, patch: Partial<Group>): Promise<void> {
-    await supabase().from("groups").update(fromGroup(patch)).eq("id", id);
+    must(await supabase().from("groups").update(fromGroup(patch)).eq("id", id));
   }
 
   async removeGroup(id: string): Promise<void> {
-    await supabase().from("groups").delete().eq("id", id);
+    must(await supabase().from("groups").delete().eq("id", id));
   }
 
   async addTransaction(
     t: Omit<Transaction, "id" | "createdAt">,
   ): Promise<void> {
-    await supabase()
+    must(await supabase()
       .from("transactions")
-      .insert({ ...fromTransaction(t), teacher_id: this.teacherId });
+      .insert({ ...fromTransaction(t), teacher_id: this.teacherId }));
   }
 
   async removeTransaction(id: string): Promise<void> {
-    await supabase().from("transactions").delete().eq("id", id);
+    must(await supabase().from("transactions").delete().eq("id", id));
   }
 
   async addPayment(
     payment: Omit<Payment, "id" | "createdAt">,
   ): Promise<void> {
-    await supabase()
+    must(await supabase()
       .from("payments")
-      .insert({ ...fromPayment(payment), teacher_id: this.teacherId });
+      .insert({ ...fromPayment(payment), teacher_id: this.teacherId }));
   }
 
   async removePayment(id: string): Promise<void> {
-    await supabase().from("payments").delete().eq("id", id);
+    must(await supabase().from("payments").delete().eq("id", id));
   }
 
   async addStudent(
     student: Omit<Student, "id" | "createdAt" | "lastContactedAt">,
   ): Promise<void> {
-    await supabase()
+    must(await supabase()
       .from("students")
-      .insert({ ...fromStudent(student), teacher_id: this.teacherId });
+      .insert({ ...fromStudent(student), teacher_id: this.teacherId }));
   }
 
   async updateStudent(id: string, patch: Partial<Student>): Promise<void> {
-    await supabase().from("students").update(fromStudent(patch)).eq("id", id);
+    must(await supabase().from("students").update(fromStudent(patch)).eq("id", id));
   }
 
   async removeStudent(id: string): Promise<void> {
-    await supabase().from("students").delete().eq("id", id);
+    must(await supabase().from("students").delete().eq("id", id));
   }
 
   async addNudge(nudge: Omit<Nudge, "id" | "createdAt">): Promise<void> {
-    await supabase()
+    must(await supabase()
       .from("nudges")
-      .insert({ ...fromNudge(nudge), teacher_id: this.teacherId });
+      .insert({ ...fromNudge(nudge), teacher_id: this.teacherId }));
   }
 
   async updateNudge(id: string, patch: Partial<Nudge>): Promise<void> {
-    await supabase().from("nudges").update(fromNudge(patch)).eq("id", id);
+    must(await supabase().from("nudges").update(fromNudge(patch)).eq("id", id));
   }
 
   async removeNudge(id: string): Promise<void> {
-    await supabase().from("nudges").delete().eq("id", id);
+    must(await supabase().from("nudges").delete().eq("id", id));
   }
 
   async addMessages(messages: Array<Omit<Message, "id">>): Promise<number> {
     if (messages.length === 0) return 0;
-    await supabase()
+    must(await supabase()
       .from("messages")
       .insert(
         messages.map((m) => ({ ...fromMessage(m), teacher_id: this.teacherId })),
-      );
+      ));
     return messages.length;
   }
 
   async updateMessage(id: string, patch: Partial<Message>): Promise<void> {
-    await supabase().from("messages").update(fromMessage(patch)).eq("id", id);
+    must(await supabase().from("messages").update(fromMessage(patch)).eq("id", id));
   }
 
   async markNudgeRun(id: string, at: string): Promise<void> {
-    await supabase().from("nudges").update({ last_run_at: at }).eq("id", id);
+    must(await supabase().from("nudges").update({ last_run_at: at }).eq("id", id));
   }
 
   /**
@@ -241,10 +253,10 @@ export class SupabaseStore {
     }
     const row = fromSettings(patch);
     if (Object.keys(row).length === 0) return;
-    await supabase()
+    must(await supabase()
       .from("settings")
       .update(row)
-      .eq("teacher_id", this.teacherId);
+      .eq("teacher_id", this.teacherId));
   }
 
   /** Removes the account and everything attached to it, permanently. */
