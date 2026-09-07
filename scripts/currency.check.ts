@@ -100,6 +100,31 @@ check(
 check("the won amount is intact", st.alsoPaid[0]?.amount === 50_000);
 check("the badge is in so'm", st.label.includes("so'm"), st.label);
 
+/* ------------------------------- paid, but only in the other currency ----- */
+
+const onlyOther = clone(seedDatabase);
+const os = onlyOther.students[0];
+const oc = onlyOther.groups.find((g) => g.id === os.groupId)!;
+oc.currency = "UZS";
+oc.fee = 1_000_000;
+onlyOther.payments = [
+  {
+    id: "p_only_krw",
+    studentId: os.id,
+    amount: 90_000,
+    currency: "KRW",
+    paidAt: "2026-03-01",
+    note: "",
+    createdAt: "2026-03-01",
+  },
+];
+
+const ost = payStanding(os, onlyOther);
+check("someone who paid in won is not called unpaid", ost.state !== "unpaid", ost.state);
+check("the badge names the currency they used", ost.label.includes("KRW"), ost.label);
+check("nothing counts towards the so'm fee", ost.paid === 0);
+check("the won is still on record", ost.alsoPaid[0]?.amount === 90_000);
+
 /* ----------------------------------------------- a course priced in won --- */
 
 const wonDb = clone(seedDatabase);

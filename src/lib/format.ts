@@ -237,7 +237,7 @@ export function payStanding(
   const owed = Math.max(0, fee - paid);
   if (owed === 0)
     return { state: "paid", paid, fee, owed, currency, alsoPaid, label: "Paid" };
-  if (paid > 0)
+  if (paid > 0 || alsoPaid.length > 0)
     return {
       state: "part",
       paid,
@@ -245,7 +245,11 @@ export function payStanding(
       owed,
       currency,
       alsoPaid,
-      label: `${money(owed, currency)} left`,
+      label:
+        paid > 0
+          ? `${money(owed, currency)} left`
+          : // Paid, but not in the currency the fee is in.
+            `Paid in ${alsoPaid.map((o) => o.currency).join(", ")}`,
     };
   return { state: "unpaid", paid, fee, owed, currency, alsoPaid, label: "Unpaid" };
 }
