@@ -105,6 +105,7 @@ function resolveAudience(db: Database, raw: string): Audience | { error: string 
 function describeStudent(s: Student, db: Database): Record<string, unknown> {
   const group = db.groups.find((g) => g.id === s.groupId);
   const paid = totalPaid(s.id, db.payments);
+  const standing = payStanding(s, db);
   return {
     name: s.name,
     course: group?.name ?? "none",
@@ -116,6 +117,7 @@ function describeStudent(s: Student, db: Database): Record<string, unknown> {
     outstanding: group
       ? money(Math.max(0, group.fee - paid), group.currency)
       : null,
+    payment_status: standing.state,
     subject: s.subject,
     level: s.level,
     status: s.status,
@@ -264,6 +266,7 @@ export function executeTool(
     case "list_students": {
       const group = str(input.group);
       const status = str(input.status);
+      const payment = str(input.payment);
       const quietDays = num(input.quiet_for_days);
       let list = db.students;
       if (group) {
@@ -273,6 +276,13 @@ export function executeTool(
         list = list.filter((s) => s.groupId === match?.id);
       }
       if (status) list = list.filter((s) => s.status === status);
+      if (payment) {
+        list = list.filter((s) => {
+          const state = payStanding(s, db).state;
+          if (payment === "owing") return state === "unpaid" || state === "part";
+          return state === payment;
+        });
+      }
       if (quietDays !== undefined) {
         list = list.filter(
           (s) =>
@@ -436,9 +446,7 @@ export function executeTool(
 
     case "record_payment": {
       const who = str(input.student_name);
-      const amount = num(input.amount);
       if (!who) return fail("student_name is required.");
-      if (!amount || amount <= 0) return fail("amount must be a positive number.");
       const student = findStudent(db, who);
       if (!student) return fail(`No student called "${who}".`);
 
@@ -447,6 +455,23 @@ export function executeTool(
       // Defaults to whatever the course is priced in, but a student may pay in
       // another currency and that has to be recorded as it happened.
       const currency = (str(input.currency) as Currency) ?? course?.currency ?? "UZS";
+
+      // "Ali is paid" carries no number — take it to mean paid in full, i.e.
+      // whatever is still owed on their course fee.
+      let amount = num(input.amount);
+      if (!amount) {
+        const owed = course ? payStanding(student, db).owed : 0;
+        if (owed > 0) {
+          amount = owed;
+        } else {
+          return fail(
+            course
+              ? "Nothing is owed on their course fee — give an amount if this is an extra payment."
+              : "They are not on a course, so give an amount.",
+          );
+        }
+      }
+      if (amount <= 0) return fail("amount must be a positive number.");
 
       deps.addPayment({
         studentId: student.id,

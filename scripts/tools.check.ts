@@ -453,6 +453,85 @@ check(
   payStanding(noCourse.students[0], noCourse).state === "none",
 );
 
+/* -------------------------------------------------------------- payments */
+
+console.log("\n10. Paying by voice, and who still owes");
+
+const payDb = clone(seedDatabase);
+const owesStudent = payDb.students.find((s) => {
+  if (!s.groupId) return false;
+  return payStanding(s, payDb).state === "unpaid";
+});
+if (!owesStudent) throw new Error("seed data needs at least one unpaid student for this check");
+const owesCourse = payDb.groups.find((g) => g.id === owesStudent.groupId)!;
+
+const paidNoAmount = run(payDb, "record_payment", { student_name: owesStudent.name });
+check(
+  "\"<name> is paid\" with no amount succeeds",
+  !paidNoAmount.out.isError,
+  paidNoAmount.out.result,
+);
+const fullPaymentCall = (paidNoAmount.calls["addPayment"] ?? [])[0] as
+  | [{ amount: number; currency: string }]
+  | undefined;
+check(
+  "it pays exactly what was owed",
+  fullPaymentCall?.[0].amount === owesCourse.fee,
+  `got ${fullPaymentCall?.[0].amount}, expected ${owesCourse.fee}`,
+);
+
+const alreadyPaidDb = clone(payDb);
+alreadyPaidDb.payments.push({
+  id: "pay_settle_up",
+  studentId: owesStudent.id,
+  amount: owesCourse.fee,
+  currency: owesCourse.currency,
+  paidAt: new Date().toISOString().slice(0, 10),
+  note: "",
+  createdAt: new Date().toISOString(),
+});
+const nothingOwed = run(alreadyPaidDb, "record_payment", { student_name: owesStudent.name });
+check(
+  "recording 'paid' again with nothing owed asks for an amount instead of double-charging",
+  nothingOwed.out.isError,
+);
+
+const noCourseStudent = clone(seedDatabase);
+noCourseStudent.students[0] = { ...noCourseStudent.students[0], groupId: null };
+const offCourse = run(noCourseStudent, "record_payment", {
+  student_name: noCourseStudent.students[0].name,
+});
+check("with no course to infer a fee from, it asks for an amount", offCourse.out.isError);
+
+const explicitAmount = run(payDb, "record_payment", {
+  student_name: owesStudent.name,
+  amount: 50000,
+});
+check("an explicit amount is still respected", !explicitAmount.out.isError);
+const explicitCall = (explicitAmount.calls["addPayment"] ?? [])[0] as
+  | [{ amount: number }]
+  | undefined;
+check("...and used as given, not the outstanding balance", explicitCall?.[0].amount === 50000);
+
+const owing = run(payDb, "list_students", { payment: "owing" });
+check("list_students(payment: owing) succeeds", !owing.out.isError, owing.out.result);
+const owingNames = (owing.data.students as Array<{ name: string; payment_status: string }>).map(
+  (s) => s.name,
+);
+check("it includes an unpaid student", owingNames.includes(owesStudent.name));
+check(
+  "every listed student is actually unpaid or part-paid",
+  (owing.data.students as Array<{ payment_status: string }>).every(
+    (s) => s.payment_status === "unpaid" || s.payment_status === "part",
+  ),
+);
+
+const paidOnly = run(payDb, "list_students", { payment: "paid" });
+check(
+  "list_students(payment: paid) excludes the unpaid student",
+  !(paidOnly.data.students as Array<{ name: string }>).some((s) => s.name === owesStudent.name),
+);
+
 /* ------------------------------------------------------------------ done */
 
 
