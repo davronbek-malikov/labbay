@@ -34,6 +34,12 @@ export const ASSISTANT_TOOLS: ToolSpec[] = [
       properties: {
         group: { type: "string", description: "Only this group." },
         status: { type: "string", enum: ["active", "paused"] },
+        payment: {
+          type: "string",
+          enum: ["paid", "owing"],
+          description:
+            "Filter by fee status. 'owing' covers both unpaid and partially paid — use it for \"who hasn't paid\" or \"who is unpaid\".",
+        },
         quiet_for_days: {
           type: "number",
           description: "Only students silent at least this many days.",
@@ -190,12 +196,16 @@ export const ASSISTANT_TOOLS: ToolSpec[] = [
   },
   {
     name: "record_payment",
-    description: "Record money a student has paid towards their course fee.",
+    description:
+      "Record money a student has paid towards their course fee. If the teacher just says someone is paid / paid in full / all paid up, without a number, leave amount out — it records whatever is still owed so their status becomes Paid.",
     input_schema: {
       type: "object",
       properties: {
         student_name: { type: "string" },
-        amount: { type: "number" },
+        amount: {
+          type: "number",
+          description: "Omit when the teacher means paid in full.",
+        },
         currency: {
           type: "string",
           enum: ["UZS", "USD", "KRW"],
@@ -204,7 +214,7 @@ export const ASSISTANT_TOOLS: ToolSpec[] = [
         paid_at: { type: "string", description: "YYYY-MM-DD. Defaults to today." },
         note: { type: "string" },
       },
-      required: ["student_name", "amount"],
+      required: ["student_name"],
       additionalProperties: false,
     },
   },
@@ -486,6 +496,7 @@ What you can do:
 - Answer money questions: who has paid, who still owes, how much a course has collected, and what the teacher earned or spent.
 - Record income and expenses when asked ("I paid 200000 for books", "add 500000 income from a private lesson").
 - Amounts default to Uzbek so'm unless the course or the teacher says otherwise.
+- "Who hasn't paid" / "who is unpaid" → list_students with payment: "owing". "Ali is paid" / "Ali paid in full" with no number → record_payment for Ali with no amount; it fills in whatever is still owed. If they give a number ("Ali paid 200000"), pass that amount instead.
 - Act as a general assistant when they ask something unrelated to the app — answer directly, no tools needed.
 
 How to behave:
