@@ -6,23 +6,19 @@ import { useState } from "react";
 import { Page } from "@/components/AppShell";
 import { StudentDrawer } from "@/components/students/StudentDrawer";
 import { PaymentsPanel } from "@/components/students/PaymentsPanel";
-import { Badge, Button, Textarea, cx } from "@/components/ui";
+import { Button, Textarea, cx } from "@/components/ui";
 import { useStore } from "@/lib/store/StoreProvider";
 import {
-  dateTime,
   daysUntil,
   groupOf,
-  payStanding,
-  initials,
   longDate,
   money,
+  payStanding,
   paymentsOf,
-  since,
-  totalPaid,
 } from "@/lib/format";
 import type { Student } from "@/lib/types";
 
-/** Everything about one student, on one page. */
+/** One student: are they paid up, when do they start and sit the exam, and a way to reach them. */
 export default function StudentProfilePage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
@@ -30,7 +26,6 @@ export default function StudentProfilePage() {
 
   const [editing, setEditing] = useState<Student | null>(null);
   const [paying, setPaying] = useState<Student | null>(null);
-  const [payingStraightIn, setPayingStraightIn] = useState(false);
   const [text, setText] = useState("");
   const [sent, setSent] = useState<string | null>(null);
 
@@ -54,19 +49,7 @@ export default function StudentProfilePage() {
     );
   }
 
-  const paid = totalPaid(student.id, db.payments);
-  const payments = paymentsOf(student.id, db.payments);
-  const owed = course ? Math.max(0, course.fee - paid) : 0;
-  const currency = course?.currency ?? "UZS";
-
-  const messages = db.messages
-    .filter((m) => m.studentId === student.id)
-    .sort(
-      (a, b) =>
-        new Date(b.sentAt ?? b.scheduledAt).getTime() -
-        new Date(a.sentAt ?? a.scheduledAt).getTime(),
-    );
-  const delivered = messages.filter((m) => m.status === "sent").length;
+  const lastPayment = paymentsOf(student.id, db.payments)[0] ?? null;
 
   const send = () => {
     const body = text.trim();
@@ -87,6 +70,8 @@ export default function StudentProfilePage() {
     window.setTimeout(() => setSent(null), 4000);
   };
 
+  const paidLabel = pay.state === "paid" ? "Paid" : pay.state === "part" ? pay.label : "Unpaid";
+
   return (
     <Page
       title={student.name}
@@ -95,13 +80,7 @@ export default function StudentProfilePage() {
       action={
         <div className="flex gap-2">
           <Button onClick={() => setEditing(student)}>Edit</Button>
-          <Button
-            variant="primary"
-            onClick={() => {
-              setPayingStraightIn(true);
-              setPaying(student);
-            }}
-          >
+          <Button variant="primary" onClick={() => setPaying(student)}>
             Add payment
           </Button>
         </div>
@@ -114,27 +93,30 @@ export default function StudentProfilePage() {
         ‹ All students
       </Link>
 
-      {/* Who */}
-      <div className="card p-5 flex flex-wrap items-center gap-4">
-        <span className="w-16 h-16 shrink-0 rounded-full bg-mint text-forest grid place-items-center text-[20px] font-bold">
-          {initials(student.name)}
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-[18px] font-bold truncate">{student.name}</p>
-          <p className="tabular text-[13px] text-muted truncate">
-            {student.telegram || "No Telegram yet"}
-          </p>
-          <p className="text-[12.5px] text-faint truncate">
-            {[student.subject, student.level].filter(Boolean).join(" · ") ||
-              "No subject set"}
-          </p>
-        </div>
-        <Badge tone={student.status === "active" ? "accent" : "quiet"}>
-          {student.status === "active" ? "Active" : "Paused"}
-        </Badge>
-      </div>
+      <section className="card p-5 grid sm:grid-cols-2 gap-5">
+        <Fact
+          label="Payment"
+          value={paidLabel}
+          tone={
+            pay.state === "paid" ? "good" : pay.state === "part" ? "warn" : "bad"
+          }
+          sub={pay.fee > 0 ? `${money(pay.paid, pay.currency)} of ${money(pay.fee, pay.currency)}` : undefined}
+        />
+        <Fact
+          label="Date of payment"
+          value={lastPayment ? longDate(lastPayment.paidAt) : "—"}
+        />
+        <Fact
+          label="Course started"
+          value={course ? longDate(course.startDate) : "—"}
+        />
+        <Fact
+          label="Exam day"
+          value={course ? longDate(course.finalExamDate) : "—"}
+          tone={examDays !== null && examDays >= 0 && examDays <= 14 ? "warn" : undefined}
+        />
+      </section>
 
-      {/* Write to them */}
       <section className="card p-5 mt-4">
         <p className="label mb-2.5">Send a message</p>
         <Textarea
@@ -165,282 +147,6 @@ export default function StudentProfilePage() {
         ) : null}
       </section>
 
-      {/* Where they stand, at a glance. */}
-      <section className="grid sm:grid-cols-3 gap-3 mb-6">
-        <div
-          className={
-            pay.state === "paid"
-              ? "card-mint p-5"
-              : pay.state === "none"
-                ? "card p-5"
-                : "rounded-[24px] bg-clay-soft p-5"
-          }
-        >
-          <p className="label">Fees</p>
-          <p
-            className={cx(
-              "figure text-[22px] mt-2",
-              pay.state === "paid"
-                ? "text-forest"
-                : pay.state === "none"
-                  ? "text-muted"
-                  : "text-clay",
-            )}
-          >
-            {pay.label}
-          </p>
-          {pay.fee > 0 ? (
-            <p className="text-[12.5px] text-muted mt-1">
-              {money(pay.paid, pay.currency)} of {money(pay.fee, pay.currency)}
-            </p>
-          ) : null}
-
-          <div className="flex flex-wrap gap-2 mt-4">
-            <Button
-              variant="primary"
-              onClick={() => {
-                setPayingStraightIn(true);
-                setPaying(student);
-              }}
-            >
-              Add payment
-            </Button>
-            <Button
-              onClick={() => {
-                setPayingStraightIn(false);
-                setPaying(student);
-              }}
-            >
-              History
-            </Button>
-          </div>
-        </div>
-
-        <div className="card p-5">
-          <p className="label">Current course</p>
-          <p className="text-[15px] font-bold mt-2">
-            {course?.name ?? "Not on a course"}
-          </p>
-          {course ? (
-            <dl className="mt-2 space-y-1">
-              <div className="flex justify-between gap-2 text-[12.5px]">
-                <dt className="text-muted">Started</dt>
-                <dd className="tabular">
-                  {student.enrolledAt ? longDate(student.enrolledAt) : "—"}
-                </dd>
-              </div>
-              <div className="flex justify-between gap-2 text-[12.5px]">
-                <dt className="text-muted">Ends</dt>
-                <dd className="tabular">{longDate(course.endDate)}</dd>
-              </div>
-              <div className="flex justify-between gap-2 text-[12.5px]">
-                <dt className="text-muted">Final exam</dt>
-                <dd
-                  className={cx(
-                    "tabular",
-                    examDays !== null && examDays >= 0 && examDays <= 14
-                      ? "text-clay font-semibold"
-                      : "",
-                  )}
-                >
-                  {longDate(course.finalExamDate)}
-                </dd>
-              </div>
-            </dl>
-          ) : (
-            <p className="text-[12.5px] text-muted mt-1">
-              Add one when you are ready
-            </p>
-          )}
-        </div>
-
-        <div className="card p-5">
-          <p className="label">Last heard from you</p>
-          <p className="text-[15px] font-bold mt-2">
-            {since(student.lastContactedAt)}
-          </p>
-          <p className="text-[12.5px] text-muted mt-1">
-            {student.telegram || "No Telegram yet"}
-          </p>
-        </div>
-      </section>
-
-      {/* Courses they have finished. */}
-      {student.pastCourses?.length ? (
-        <section className="mb-6">
-          <p className="label mb-2 px-1">Courses before this one</p>
-          <div className="set-card">
-            {[...student.pastCourses].reverse().map((c, i) => (
-              <div key={i} className="set-row" style={{ cursor: "default" }}>
-                <span className="set-text">
-                  <span className="set-title block">{c.name}</span>
-                  <span className="set-sub block">
-                    {c.from ? `${longDate(c.from)} — ` : "Until "}
-                    {longDate(c.to)}
-                  </span>
-                </span>
-              </div>
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      {/* Anything the teacher chose to track. */}
-      {Object.keys(student.fields ?? {}).length > 0 ? (
-        <section className="mb-6">
-          <p className="label mb-2 px-1">Details</p>
-          <div className="set-card">
-            {Object.entries(student.fields).map(([k, v]) => (
-              <div key={k} className="set-row" style={{ cursor: "default" }}>
-                <span className="set-text">
-                  <span className="set-title block">{k}</span>
-                </span>
-                <span className="text-[13px] text-muted">{v}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      <div className="grid lg:grid-cols-2 gap-4 mt-4">
-        {/* Course */}
-        {course ? (
-          <section className="card p-5">
-            <div className="flex items-baseline justify-between mb-3">
-              <p className="label">Course</p>
-              <Link
-                href="/courses"
-                className="text-[12px] text-accent hover:text-forest"
-              >
-                Open
-              </Link>
-            </div>
-            <p className="text-[15px] font-bold">{course.name}</p>
-            <div className="flex flex-wrap gap-x-6 gap-y-2 mt-3">
-              <Fact label="Starts" value={longDate(course.startDate)} />
-              <Fact label="Ends" value={longDate(course.endDate)} />
-              <Fact label="Final exam" value={longDate(course.finalExamDate)} />
-            </div>
-            {course.topics.length ? (
-              <>
-                <p className="label mt-4 mb-2">Topics</p>
-                <ol className="space-y-1">
-                  {course.topics.slice(0, 6).map((t, i) => (
-                    <li key={i} className="text-[13px] flex gap-2">
-                      <span className="tabular text-[11px] text-faint pt-0.5">
-                        {i + 1}
-                      </span>
-                      {t}
-                    </li>
-                  ))}
-                </ol>
-              </>
-            ) : null}
-          </section>
-        ) : (
-          <section className="card p-5">
-            <p className="label mb-2">Course</p>
-            <p className="text-[13.5px] text-muted">
-              Not on a course. Use Edit to put them on one.
-            </p>
-          </section>
-        )}
-
-        {/* Payments */}
-        <section className="card p-5">
-          <div className="flex items-baseline justify-between mb-3">
-            <p className="label">Payments</p>
-            {course ? (
-              <button
-                type="button"
-                onClick={() => setPaying(student)}
-                className="text-[12px] text-accent hover:text-forest"
-              >
-                Record one
-              </button>
-            ) : null}
-          </div>
-          {payments.length === 0 ? (
-            <p className="text-[13px] text-muted">Nothing recorded yet.</p>
-          ) : (
-            <ul className="space-y-2">
-              {payments.slice(0, 6).map((p) => (
-                <li
-                  key={p.id}
-                  className="flex items-baseline justify-between gap-3"
-                >
-                  <span className="tabular text-[13.5px] font-semibold">
-                    {money(p.amount, currency)}
-                  </span>
-                  <span className="text-[12px] text-faint truncate">
-                    {longDate(p.paidAt)}
-                    {p.note ? ` · ${p.note}` : ""}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      </div>
-
-      {/* What the agent knows */}
-      <section className="card p-5 mt-4">
-        <p className="label mb-2">What the agent knows</p>
-        {student.aiNotes ? (
-          <p className="text-[13.5px] text-muted leading-relaxed">
-            {student.aiNotes}
-          </p>
-        ) : (
-          <p className="text-[13px] text-faint">
-            Nothing yet. Add a note in Edit and every message written to them
-            will take it into account.
-          </p>
-        )}
-      </section>
-
-      {/* History */}
-      <section className="mt-7">
-        <p className="label mb-2 px-1">
-          {messages.length === 0
-            ? "No messages yet"
-            : `${messages.length} message${messages.length === 1 ? "" : "s"} · ${delivered} delivered`}
-        </p>
-        {messages.length > 0 ? (
-          <ul className="space-y-2">
-            {messages.slice(0, 20).map((m) => (
-              <li key={m.id} className="card px-4 py-3">
-                <div className="flex items-baseline justify-between gap-2 mb-1">
-                  <span className="tabular text-[11.5px] text-faint">
-                    {dateTime(m.sentAt ?? m.scheduledAt)}
-                  </span>
-                  <span
-                    className={cx(
-                      "text-[11.5px] font-semibold",
-                      m.status === "sent"
-                        ? "text-accent"
-                        : m.status === "failed"
-                          ? "text-clay"
-                          : "text-faint",
-                    )}
-                  >
-                    {m.status === "sent"
-                      ? "Sent"
-                      : m.status === "failed"
-                        ? "Failed"
-                        : m.status === "sending"
-                          ? "Sending"
-                          : "Queued"}
-                  </span>
-                </div>
-                <p className="text-[13.5px] leading-snug">
-                  {m.status === "failed" ? m.error : m.text}
-                </p>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-      </section>
-
       <StudentDrawer
         open={editing !== null}
         student={editing}
@@ -449,25 +155,42 @@ export default function StudentProfilePage() {
       />
       <PaymentsPanel
         student={paying}
-        startAdding={payingStraightIn}
-        onClose={() => {
-          setPaying(null);
-          setPayingStraightIn(false);
-        }}
+        startAdding
+        onClose={() => setPaying(null)}
       />
     </Page>
   );
 }
 
-function Fact({ label, value }: { label: string; value: string }) {
+function Fact({
+  label,
+  value,
+  sub,
+  tone,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  tone?: "good" | "warn" | "bad";
+}) {
   return (
-    <span>
-      <span className="block text-[11px] text-faint uppercase tracking-[0.06em]">
-        {label}
-      </span>
-      <span className="block tabular text-[13px] font-semibold mt-0.5">
+    <div>
+      <p className="label">{label}</p>
+      <p
+        className={cx(
+          "figure text-[20px] mt-2",
+          tone === "good"
+            ? "text-forest"
+            : tone === "bad"
+              ? "text-clay"
+              : tone === "warn"
+                ? "text-chip-amber"
+                : "",
+        )}
+      >
         {value}
-      </span>
-    </span>
+      </p>
+      {sub ? <p className="text-[12.5px] text-muted mt-1">{sub}</p> : null}
+    </div>
   );
 }
