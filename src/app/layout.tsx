@@ -14,11 +14,30 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>
+    <html lang="en" className="h-full bg-[#f8f6f0] text-[#2c1810] antialiased">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+        <script src="https://cdn.jsdelivr.net/npm/iconify-icon@3.0.2/dist/iconify-icon.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.browser.js"></script>
+      </head>
+      <body className="min-h-full bg-[#f8f6f0] text-[#2c1810] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#e05638]/20 selection:text-[#e05638]">
         <StoreProvider>
           <AppShell>{children}</AppShell>
         </StoreProvider>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              document.addEventListener('click', function(e) {
+                const target = e.target && e.target.closest ? e.target.closest('button, a, input[type="submit"], [role="button"]') : null;
+                if (target) {
+                  try { new Audio('https://cdn.jsdelivr.net/npm/uisfx@0.4.0/sounds/minimal/press.mp3').play(); } catch(err){}
+                }
+              }, true);
+            `
+          }}
+        />
       </body>
     </html>
   );
