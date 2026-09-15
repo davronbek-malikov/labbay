@@ -89,7 +89,7 @@ export default function CoursesPage() {
         <button
           type="button"
           onClick={() => setInsideGroup(null)}
-          className="text-[13.5px] font-semibold text-accent hover:text-forest mb-5"
+          className="text-[13.5px] font-semibold text-[#e05638] hover:text-[#2c1810] mb-5 flex items-center gap-1 transition-colors"
         >
           ‹ All courses
         </button>
@@ -97,9 +97,9 @@ export default function CoursesPage() {
         <CourseDates group={live} />
 
         {live.notes ? (
-          <section className="card p-5 mt-4">
-            <p className="label mb-2">Notes</p>
-            <p className="text-[13.5px] text-muted leading-relaxed whitespace-pre-wrap">
+          <section className="bg-[#ffffff] border border-[#e6e1d5] rounded-[16px] p-[21px] mt-4 shadow-[0_2px_6px_rgba(44,24,16,0.05)]">
+            <p className="text-[11px] font-bold text-[#f59e0b] uppercase tracking-[0.06em] mb-2">Notes</p>
+            <p className="text-[13.5px] text-[#2c1810]/70 leading-relaxed whitespace-pre-wrap font-['Plus_Jakarta_Sans',sans-serif]">
               {live.notes}
             </p>
           </section>
@@ -108,12 +108,12 @@ export default function CoursesPage() {
         <SyllabusEditor group={live} />
 
         <div className="flex flex-wrap items-baseline justify-between gap-2 mt-8 mb-2 px-1">
-          <p className="label">
+          <p className="text-[11px] font-bold text-[#2c1810]/60 uppercase tracking-[0.06em]">
             Students · {members.length}
           </p>
           <Link
             href="/students"
-            className="text-[12.5px] font-semibold text-accent hover:text-forest"
+            className="text-[12.5px] font-semibold text-[#e05638] hover:text-[#2c1810] transition-colors"
           >
             Manage in Students
           </Link>
@@ -130,16 +130,16 @@ export default function CoursesPage() {
             }
           />
         ) : (
-          <div className="set-card">
+          <div className="bg-[#ffffff] border border-[#e6e1d5] rounded-[16px] overflow-hidden shadow-[0_2px_6px_rgba(44,24,16,0.05)] divide-y divide-[#e6e1d5]">
             {members.map((s) => (
-              <Link key={s.id} href={`/students/${s.id}`} className="set-row">
-                <span className="w-9 h-9 shrink-0 rounded-full bg-mint text-forest grid place-items-center text-[11.5px] font-bold">
+              <Link key={s.id} href={`/students/${s.id}`} className="flex items-center gap-3.5 p-4 hover:bg-[#f8f6f0] transition-colors">
+                <span className="w-9 h-9 shrink-0 rounded-full bg-[#e05638]/10 text-[#e05638] grid place-items-center text-[11.5px] font-bold">
                   {initials(s.name)}
                 </span>
-                <span className="set-text">
-                  <span className="set-title block">{s.name}</span>
+                <span className="flex-1 min-w-0">
+                  <span className="text-[14px] font-semibold text-[#2c1810] block truncate">{s.name}</span>
                 </span>
-                <span className="set-chevron text-[15px]">›</span>
+                <span className="text-[#2c1810]/40 text-[15px]">›</span>
               </Link>
             ))}
           </div>
@@ -162,12 +162,20 @@ export default function CoursesPage() {
         </Button>
       }
     >
-      <div className="seg max-w-[320px] mb-5">
+      <script src="https://cdn.jsdelivr.net/npm/iconify-icon@3.0.2/dist/iconify-icon.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.browser.js"></script>
+
+      <div className="flex bg-[#e6e1d5]/40 p-1 rounded-[16px] max-w-[320px] mb-5 border border-[#e6e1d5]">
         {(["group", "individual"] as const).map((t) => (
           <button
             key={t}
             type="button"
-            className="seg-btn"
+            className={cx(
+              "flex-1 py-1.5 text-[13px] font-semibold rounded-[8px] transition-all",
+              tab === t
+                ? "bg-[#ffffff] text-[#2c1810] shadow-[0_2px_6px_rgba(44,24,16,0.05)]"
+                : "text-[#2c1810]/60 hover:text-[#2c1810]"
+            )}
             aria-pressed={tab === t}
             onClick={() => setTab(t)}
           >
@@ -177,12 +185,12 @@ export default function CoursesPage() {
       </div>
 
       <div className="relative mb-5">
-        <IconSearch className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-faint pointer-events-none" />
+        <IconSearch className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-[#2c1810]/40 pointer-events-none" />
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search course or student"
-          className="pl-10"
+          className="pl-10 bg-[#ffffff] border-[#e6e1d5] rounded-[8px] focus:ring-2 focus:ring-[#e05638]"
           aria-label="Search courses"
         />
       </div>
@@ -212,7 +220,7 @@ export default function CoursesPage() {
           }
         />
       ) : tab === "group" ? (
-        <ul className="space-y-3">
+        <ul className="space-y-4">
           {visibleCourses.map((g) => {
             const members = studentsIn(g.id, db.students);
             const collected = members.reduce(
@@ -225,12 +233,12 @@ export default function CoursesPage() {
                 <button
                   type="button"
                   onClick={() => setInsideGroup(g)}
-                  className="card w-full text-left p-5 hover:bg-field/40 transition-colors"
+                  className="bg-[#ffffff] border border-[#e6e1d5] rounded-[16px] w-full text-left p-[21px] shadow-[0_2px_6px_rgba(44,24,16,0.05)] hover:shadow-[0_12px_32px_-8px_rgba(224,86,56,0.12)] hover:border-[#e05638]/40 transition-all group"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-[16px] font-bold">{g.name}</p>
-                      <p className="text-[12.5px] text-muted mt-0.5">
+                      <p className="text-[17px] font-bold text-[#2c1810] group-hover:text-[#e05638] transition-colors">{g.name}</p>
+                      <p className="text-[13px] text-[#2c1810]/60 mt-0.5 font-medium">
                         {members.length} student{members.length === 1 ? "" : "s"} ·{" "}
                         {money(g.fee, g.currency)} each
                         {g.topics.length ? ` · ${g.topics.length} topics` : ""}
@@ -239,7 +247,7 @@ export default function CoursesPage() {
                     <ExamBadge group={g} />
                   </div>
 
-                  <div className="flex flex-wrap gap-x-7 gap-y-3 mt-4">
+                  <div className="flex flex-wrap gap-x-8 gap-y-3 mt-4 pt-4 border-t border-[#e6e1d5]/60">
                     <Fact label="Starts" value={longDate(g.startDate)} />
                     <Fact label="Ends" value={longDate(g.endDate)} />
                     <Fact label="Final exam" value={longDate(g.finalExamDate)} />
@@ -247,9 +255,9 @@ export default function CoursesPage() {
 
                   {expected > 0 ? (
                     <div className="mt-4">
-                      <div className="flex items-baseline justify-between text-[12px] mb-1.5">
-                        <span className="text-muted">Collected</span>
-                        <span className="tabular font-semibold">
+                      <div className="flex items-baseline justify-between text-[12.5px] mb-1.5">
+                        <span className="text-[#2c1810]/60 font-medium">Collected</span>
+                        <span className="tabular font-semibold text-[#2c1810]">
                           {money(collected, g.currency)} of{" "}
                           {money(expected, g.currency)}
                         </span>
@@ -263,18 +271,18 @@ export default function CoursesPage() {
           })}
         </ul>
       ) : (
-        <div className="set-card">
+        <div className="bg-[#ffffff] border border-[#e6e1d5] rounded-[16px] overflow-hidden shadow-[0_2px_6px_rgba(44,24,16,0.05)] divide-y divide-[#e6e1d5]">
           {visibleCourses.map((g) => {
             const student = studentsIn(g.id, db.students)[0];
             const paid = student ? totalPaid(student.id, db.payments) : 0;
             return (
-              <div key={g.id} className="set-row" style={{ cursor: "default" }}>
-                <span className="w-10 h-10 shrink-0 rounded-full bg-mint text-forest grid place-items-center text-[12px] font-bold">
+              <div key={g.id} className="flex items-center gap-4 p-4 hover:bg-[#f8f6f0]/50 transition-colors" style={{ cursor: "default" }}>
+                <span className="w-10 h-10 shrink-0 rounded-full bg-[#f59e0b]/15 text-[#2c1810] grid place-items-center text-[12px] font-bold border border-[#f59e0b]/30">
                   {student ? initials(student.name) : "—"}
                 </span>
-                <span className="set-text">
-                  <span className="set-title block">{student?.name ?? g.name}</span>
-                  <span className="set-sub block">
+                <span className="flex-1 min-w-0">
+                  <span className="text-[15px] font-bold text-[#2c1810] block truncate">{student?.name ?? g.name}</span>
+                  <span className="text-[12.5px] text-[#2c1810]/60 block truncate mt-0.5">
                     {g.name} · exam {longDate(g.finalExamDate)} ·{" "}
                     {money(paid, g.currency)} of {money(g.fee, g.currency)}
                   </span>
@@ -313,10 +321,10 @@ export default function CoursesPage() {
 function Fact({ label, value }: { label: string; value: string }) {
   return (
     <span>
-      <span className="block text-[11px] text-faint uppercase tracking-[0.06em]">
+      <span className="block text-[11px] text-[#2c1810]/50 uppercase tracking-[0.06em] font-semibold">
         {label}
       </span>
-      <span className="block tabular text-[13px] font-semibold mt-0.5">
+      <span className="block tabular text-[13.5px] font-semibold text-[#2c1810] mt-0.5">
         {value}
       </span>
     </span>
@@ -325,7 +333,7 @@ function Fact({ label, value }: { label: string; value: string }) {
 
 function CourseDates({ group }: { group: Group }) {
   return (
-    <div className="card p-5 flex flex-wrap gap-x-9 gap-y-4">
+    <div className="bg-[#ffffff] border border-[#e6e1d5] rounded-[16px] p-[21px] flex flex-wrap gap-x-9 gap-y-4 shadow-[0_2px_6px_rgba(44,24,16,0.05)]">
       <Fact label="Starts" value={longDate(group.startDate)} />
       <Fact label="Ends" value={longDate(group.endDate)} />
       <Fact label="Final exam" value={longDate(group.finalExamDate)} />
@@ -345,13 +353,31 @@ function ExamBadge({ group }: { group: Group }) {
 
 function Bar({ value, of }: { value: number; of: number }) {
   const pct = of === 0 ? 0 : Math.min(100, Math.round((value / of) * 100));
+  const isLoading = pct < 100;
+
   return (
-    <div className="h-1.5 rounded-full bg-field overflow-hidden">
-      <div
-        className={cx("h-full rounded-full", pct >= 100 ? "bg-accent" : "bg-forest")}
-        style={{ width: `${pct}%` }}
-      />
+    <div className="relative p-1 rounded-[8px] border border-dashed border-[#e6e1d5] shadow-[inset_0_2px_4px_rgba(44,24,16,0.06)] bg-[#f8f6f0]">
+      <div className="h-2 rounded-[4px] bg-[#e6e1d5]/50 overflow-hidden relative">
+        <div
+          className={cx("h-full rounded-[4px] transition-all duration-500", pct >= 100 ? "bg-[#10b981]" : "bg-[#e05638]")}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      {isLoading && (
+        <div className="absolute right-2 -top-6 flex items-center gap-1 text-[11px] font-medium text-[#e05638]">
+          <iconify-icon icon="svg-spinners:ring-resize" style={{ fontSize: '12px', color: '#e05638' }}></iconify-icon>
+          <span>In progress</span>
+        </div>
+      )}
     </div>
   );
 }
 
+<script dangerouslySetInnerHTML={{ __html: `
+  document.addEventListener('click', function(e) {
+    var target = e.target.closest('button, a, input[type="button"], input[type="submit"]');
+    if (target) {
+      new Audio('https://cdn.jsdelivr.net/npm/uisfx@0.4.0/sounds/minimal/press.mp3').play();
+    }
+  });
+` }} />
