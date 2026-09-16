@@ -86,16 +86,16 @@ export default function DashboardPage() {
     return (
       <Page title="Today">
         <script src="https://cdn.jsdelivr.net/npm/iconify-icon@3.0.2/dist/iconify-icon.min.js"></script>
-        <div className="flex flex-col items-center justify-center py-12 gap-4">
-          <div className="p-6 rounded-[16px] border border-dashed border-[#e6e1d5] bg-white shadow-[inset_0_2px_4px_rgba(44,24,16,0.06)] flex flex-col items-center gap-3">
-            <iconify-icon icon="line-md:loading-loop" style={{ fontSize: "36px", color: "#e05638" }}></iconify-icon>
-            <span className="text-[14px] font-medium text-[#2c1810]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Loading dashboard...</span>
+        <div className="flex flex-col items-center justify-center py-16 gap-5 font-['Inter']">
+          <div className="p-8 rounded-[10px] border-2 border-[#111114] bg-[#F4F4F6] shadow-[0_4px_0_#111114] flex flex-col items-center gap-4">
+            <iconify-icon icon="line-md:loading-loop" style={{ fontSize: "40px", color: "#FF4B2B" }}></iconify-icon>
+            <span className="text-[15px] font-bold text-[#111114] font-['Space_Grotesk']">Loading dashboard...</span>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 w-full">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full mt-4">
             {[0, 1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-[16px] p-5 border border-[#e6e1d5] shadow-[0_2px_6px_rgba(44,24,16,0.05)]">
-                <Skeleton className="h-9 w-16 rounded-[8px]" />
-                <Skeleton className="h-3 w-24 mt-3 rounded-[8px]" />
+              <div key={i} className="bg-[#F4F4F6] rounded-[10px] p-6 border-2 border-[#111114] shadow-[0_4px_0_#111114]">
+                <Skeleton className="h-10 w-20 rounded-[4px] bg-[#111114]/10" />
+                <Skeleton className="h-4 w-28 mt-4 rounded-[4px] bg-[#111114]/10" />
               </div>
             ))}
           </div>
@@ -117,12 +117,14 @@ export default function DashboardPage() {
           : "Nothing is sending yet — connect Telegram in Settings."
       }
       action={
-        <div className="flex gap-2.5">
+        <div className="flex gap-3">
+          <script src="https://cdn.jsdelivr.net/npm/iconify-icon@3.0.2/dist/iconify-icon.min.js"></script>
+          <script src="https://unpkg.com/@lottiefiles/lottie-player@2.0.4/dist/lottie-player.js"></script>
           <Link href="/nudges/new">
-            <Button className="rounded-[8px] bg-white text-[#2c1810] border border-[#e6e1d5] shadow-[0_2px_6px_rgba(44,24,16,0.05)] hover:bg-[#f8f6f0]">New nudge</Button>
+            <Button className="rounded-[6px] bg-[#FFFFFF] text-[#111114] border-2 border-[#111114] shadow-[0_4px_0_#111114] hover:bg-[#F4F4F6] font-['Space_Grotesk'] font-bold transition-all active:translate-y-1 active:shadow-none">New nudge</Button>
           </Link>
           <Link href="/send">
-            <Button variant="primary" className="rounded-[8px] bg-[#e05638] text-white shadow-[0_12px_32px_-8px_rgba(224,86,56,0.12)] hover:bg-[#c9492d]">Send now</Button>
+            <Button variant="primary" className="rounded-[6px] bg-[#FF4B2B] text-white border-2 border-[#111114] shadow-[0_4px_0_#111114] hover:bg-[#FF4B2B]/90 font-['Space_Grotesk'] font-bold transition-all active:translate-y-1 active:shadow-none">Send now</Button>
           </Link>
         </div>
       }
@@ -130,65 +132,65 @@ export default function DashboardPage() {
       <ExamAlerts />
 
       {/* Stats — numbers as data, styled cards */}
-      <section className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+      <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Stat value={active.length} label="Active students" />
         <Stat value={sentThisWeek.length} label="Sent this week" />
         <Stat value={queued.length} label="Queued tonight" />
         <Stat
           value={quiet.length}
-          label="Gone quiet"
+          label="Gone quiet / Unpaid alert"
           tone={quiet.length > 0 ? "clay" : "neutral"}
+          showAlertIcon={quiet.length > 0}
         />
       </section>
 
       {/* Money — financial summary block */}
-      <section className="mt-10">
-        <div className="flex items-baseline justify-between mb-3.5">
-          <h2 className="text-[13px] font-semibold tracking-wider uppercase text-[#2c1810]/70" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Last 30 days</h2>
-          <span className="text-[12px] text-[#2c1810]/50" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+      <section className="mt-12">
+        <div className="flex items-baseline justify-between mb-4">
+          <h2 className="text-[14px] font-bold tracking-wider uppercase text-[#111114] font-['Space_Grotesk']">Last 30 days</h2>
+          <span className="text-[13px] text-[#111114]/70 font-['Inter'] font-medium">
             {finance.mixed
               ? `${finance.primary} only — ask the assistant for the rest`
               : "ask the assistant to add income or an expense"}
           </span>
         </div>
-        <div className="grid sm:grid-cols-3 gap-px bg-[#e6e1d5] border border-[#e6e1d5] rounded-[16px] overflow-hidden shadow-[0_2px_6px_rgba(44,24,16,0.05)]">
-          <div className="bg-white px-5 py-5.5 shadow-[inset_0_2px_4px_rgba(44,24,16,0.02)]">
-            <p className="text-[26px] font-bold text-[#10b981]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        <div className="grid sm:grid-cols-3 gap-4">
+          <div className="bg-[#F4F4F6] border-2 border-[#111114] rounded-[10px] p-6 shadow-[0_4px_0_#111114]">
+            <p className="text-[32px] font-bold text-[#0B8F5C] font-['Space_Grotesk'] leading-tight">
               {money(totals.income, finance.primary)}
             </p>
-            <p className="text-[12px] font-semibold tracking-wider uppercase text-[#2c1810]/60 mt-2">In</p>
+            <p className="text-[12px] font-bold tracking-wider uppercase text-[#111114]/80 mt-2 font-['Space_Grotesk']">In (Collected Fees)</p>
           </div>
-          <div className="bg-white px-5 py-5.5 shadow-[inset_0_2px_4px_rgba(44,24,16,0.02)]">
-            <p className="text-[26px] font-bold text-[#dc2626]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <div className="bg-[#F4F4F6] border-2 border-[#111114] rounded-[10px] p-6 shadow-[0_4px_0_#111114]">
+            <p className="text-[32px] font-bold text-[#E3341F] font-['Space_Grotesk'] leading-tight">
               {money(totals.expense, finance.primary)}
             </p>
-            <p className="text-[12px] font-semibold tracking-wider uppercase text-[#2c1810]/60 mt-2">Out</p>
+            <p className="text-[12px] font-bold tracking-wider uppercase text-[#111114]/80 mt-2 font-['Space_Grotesk']">Out</p>
           </div>
-          <div className="bg-white px-5 py-5.5 shadow-[inset_0_2px_4px_rgba(44,24,16,0.02)]">
+          <div className="bg-[#F4F4F6] border-2 border-[#111114] rounded-[10px] p-6 shadow-[0_4px_0_#111114]">
             <p
-              className={`text-[26px] font-bold ${totals.net >= 0 ? "text-[#e05638]" : "text-[#dc2626]"}`}
-              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              className={`text-[32px] font-bold font-['Space_Grotesk'] leading-tight ${totals.net >= 0 ? "text-[#FF4B2B]" : "text-[#E3341F]"}`}
             >
               {money(totals.net, finance.primary)}
             </p>
-            <p className="text-[12px] font-semibold tracking-wider uppercase text-[#2c1810]/60 mt-2">Net</p>
+            <p className="text-[12px] font-bold tracking-wider uppercase text-[#111114]/80 mt-2 font-['Space_Grotesk']">Net Balance</p>
           </div>
         </div>
       </section>
 
       {/* The week — week strip section */}
-      <section className="mt-10">
-        <div className="flex items-baseline justify-between mb-3.5">
-          <h2 className="text-[13px] font-semibold tracking-wider uppercase text-[#2c1810]/70" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>This week</h2>
-          <span className="text-[12px] text-[#2c1810]/50" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+      <section className="mt-12">
+        <div className="flex items-baseline justify-between mb-4">
+          <h2 className="text-[14px] font-bold tracking-wider uppercase text-[#111114] font-['Space_Grotesk']">This week</h2>
+          <span className="text-[13px] text-[#111114]/70 font-['Inter'] font-medium">
             {scheduledDays.length} of 7 days have a nudge
           </span>
         </div>
-        <div className="bg-white rounded-[16px] p-5.5 border border-[#e6e1d5] shadow-[0_2px_6px_rgba(44,24,16,0.05)]">
+        <div className="bg-[#F4F4F6] rounded-[10px] p-6 border-2 border-[#111114] shadow-[0_4px_0_#111114]">
           <WeekStrip active={scheduledDays} size="lg" label="Days with a nudge" />
-          <p className="mt-4 text-[13.5px] text-[#2c1810]/70" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <p className="mt-5 text-[14px] text-[#111114] font-['Inter'] font-medium">
             Today is{" "}
-            <span className="text-[#2c1810] font-semibold">
+            <span className="text-[#111114] font-bold underline decoration-[#FF4B2B] decoration-2">
               {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"][today]}
             </span>
             {scheduledDays.includes(today)
@@ -198,37 +200,45 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      <div className="mt-10 grid lg:grid-cols-2 gap-10">
-        {/* Gone quiet */}
+      <div className="mt-12 grid lg:grid-cols-2 gap-8">
+        {/* Gone quiet / Unpaid Alert */}
         <section>
-          <div className="flex items-baseline justify-between mb-3.5">
-            <h2 className="text-[13px] font-semibold tracking-wider uppercase text-[#2c1810]/70" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Gone quiet</h2>
+          <div className="flex items-baseline justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <h2 className="text-[14px] font-bold tracking-wider uppercase text-[#111114] font-['Space_Grotesk']">Gone quiet / Unpaid</h2>
+              {quiet.length > 0 && (
+                <iconify-icon icon="line-md:bell-loop" style={{ fontSize: "20px", color: "#E3341F" }}></iconify-icon>
+              )}
+            </div>
             <Link
               href="/students"
-              className="text-[12px] font-medium text-[#e05638] hover:text-[#f59e0b]"
-              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              className="text-[13px] font-bold text-[#FF4B2B] hover:underline font-['Space_Grotesk']"
             >
               All students
             </Link>
           </div>
           {quiet.length === 0 ? (
-            <div className="bg-white rounded-[16px] px-5 py-8 text-center border border-[#e6e1d5] shadow-[0_2px_6px_rgba(44,24,16,0.05)] shadow-[inset_0_2px_4px_rgba(44,24,16,0.03)]">
-              <p className="text-[14px] text-[#2c1810]/70" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Everyone has heard from you this week.</p>
+            <div className="bg-[#F4F4F6] rounded-[10px] p-8 text-center border-2 border-[#111114] shadow-[0_4px_0_#111114] flex flex-col items-center justify-center gap-2">
+              <iconify-icon icon="line-md:confirm-circle" style={{ fontSize: "36px", color: "#0B8F5C" }}></iconify-icon>
+              <p className="text-[14px] font-medium text-[#111114] font-['Inter']">Everyone has heard from you this week & fees are up to date.</p>
             </div>
           ) : (
-            <ul className="bg-white rounded-[16px] border border-[#e6e1d5] divide-y divide-[#e6e1d5] shadow-[0_2px_6px_rgba(44,24,16,0.05)] overflow-hidden">
+            <ul className="bg-[#FFFFFF] rounded-[10px] border-2 border-[#111114] divide-y-2 divide-[#111114] shadow-[0_4px_0_#111114] overflow-hidden">
               {quiet.slice(0, 5).map((s) => (
-                <li key={s.id} className="flex items-center gap-3.5 px-4.5 py-3.5">
+                <li key={s.id} className="flex items-center gap-4 px-5 py-4 bg-[#F4F4F6]/50 hover:bg-[#F4F4F6]">
                   <Avatar name={s.name} />
                   <div className="min-w-0 flex-1">
-                    <p className="text-[14px] font-medium text-[#2c1810] truncate" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{s.name}</p>
-                    <p className="text-[12px] text-[#2c1810]/50 truncate" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    <p className="text-[14px] font-bold text-[#111114] truncate font-['Space_Grotesk']">{s.name}</p>
+                    <p className="text-[12px] text-[#111114]/70 truncate font-['Inter']">
                       {groupNameOf(s, db.groups)}
                     </p>
                   </div>
-                  <span className="tabular text-[12px] font-medium text-[#dc2626] shrink-0" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                    {since(s.lastContactedAt)}
-                  </span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <iconify-icon icon="line-md:close-circle" style={{ fontSize: "18px", color: "#E3341F" }}></iconify-icon>
+                    <span className="tabular text-[12px] font-bold text-[#E3341F] bg-[#E3341F]/10 border border-[#E3341F] px-2 py-0.5 rounded-[4px] font-['Space_Grotesk']">
+                      {since(s.lastContactedAt)}
+                    </span>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -237,36 +247,35 @@ export default function DashboardPage() {
 
         {/* Going out tonight */}
         <section>
-          <div className="flex items-baseline justify-between mb-3.5">
-            <h2 className="text-[13px] font-semibold tracking-wider uppercase text-[#2c1810]/70" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Going out tonight</h2>
+          <div className="flex items-baseline justify-between mb-4">
+            <h2 className="text-[14px] font-bold tracking-wider uppercase text-[#111114] font-['Space_Grotesk']">Going out tonight</h2>
             <Link
               href="/messages"
-              className="text-[12px] font-medium text-[#e05638] hover:text-[#f59e0b]"
-              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              className="text-[13px] font-bold text-[#FF4B2B] hover:underline font-['Space_Grotesk']"
             >
               All messages
             </Link>
           </div>
           {queued.length === 0 ? (
-            <div className="bg-white rounded-[16px] px-5 py-8 text-center border border-[#e6e1d5] shadow-[0_2px_6px_rgba(44,24,16,0.05)] shadow-[inset_0_2px_4px_rgba(44,24,16,0.03)]">
-              <p className="text-[14px] text-[#2c1810]/70" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Nothing queued.</p>
+            <div className="bg-[#F4F4F6] rounded-[10px] p-8 text-center border-2 border-[#111114] shadow-[0_4px_0_#111114]">
+              <p className="text-[14px] font-medium text-[#111114] font-['Inter']">Nothing queued.</p>
             </div>
           ) : (
-            <ul className="bg-white rounded-[16px] border border-[#e6e1d5] divide-y divide-[#e6e1d5] shadow-[0_2px_6px_rgba(44,24,16,0.05)] overflow-hidden">
+            <ul className="bg-[#FFFFFF] rounded-[10px] border-2 border-[#111114] divide-y-2 divide-[#111114] shadow-[0_4px_0_#111114] overflow-hidden">
               {queued.slice(0, 5).map((m) => (
-                <li key={m.id} className="px-4.5 py-3.5">
+                <li key={m.id} className="px-5 py-4 bg-[#F4F4F6]/50 hover:bg-[#F4F4F6]">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[14px] font-medium text-[#2c1810]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    <span className="text-[14px] font-bold text-[#111114] font-['Space_Grotesk']">
                       {nameOf(m.studentId)}
                     </span>
-                    <span className="tabular text-[12px] text-[#2c1810]/50" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    <span className="tabular text-[12px] font-semibold text-[#111114]/70 bg-[#111114]/5 px-2 py-0.5 rounded-[4px] font-['Space_Grotesk']">
                       {time(
                         new Date(m.scheduledAt).getHours(),
                         new Date(m.scheduledAt).getMinutes(),
                       )}
                     </span>
                   </div>
-                  <p className="text-[13px] text-[#2c1810]/70 line-clamp-2 leading-relaxed" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  <p className="text-[13px] text-[#111114]/80 line-clamp-2 leading-relaxed font-['Inter']">
                     {m.text}
                   </p>
                 </li>
@@ -277,34 +286,33 @@ export default function DashboardPage() {
       </div>
 
       {/* Nudges at a glance */}
-      <section className="mt-10">
-        <div className="flex items-baseline justify-between mb-3.5">
-          <h2 className="text-[13px] font-semibold tracking-wider uppercase text-[#2c1810]/70" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Your nudges</h2>
+      <section className="mt-12">
+        <div className="flex items-baseline justify-between mb-4">
+          <h2 className="text-[14px] font-bold tracking-wider uppercase text-[#111114] font-['Space_Grotesk']">Your nudges</h2>
           <Link
             href="/nudges"
-            className="text-[12px] font-medium text-[#e05638] hover:text-[#f59e0b] inline-flex items-center gap-1"
-            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            className="text-[13px] font-bold text-[#FF4B2B] hover:underline inline-flex items-center gap-1 font-['Space_Grotesk']"
           >
-            Manage <IconArrowRight className="w-3.5 h-3.5" />
+            Manage <IconArrowRight className="w-4 h-4" />
           </Link>
         </div>
-        <ul className="bg-white rounded-[16px] border border-[#e6e1d5] divide-y divide-[#e6e1d5] shadow-[0_2px_6px_rgba(44,24,16,0.05)] overflow-hidden">
+        <ul className="bg-[#FFFFFF] rounded-[10px] border-2 border-[#111114] divide-y-2 divide-[#111114] shadow-[0_4px_0_#111114] overflow-hidden">
           {nudges.map((n) => (
             <li
               key={n.id}
-              className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4.5 py-4"
+              className="flex flex-wrap items-center gap-x-5 gap-y-3 px-5 py-4 bg-[#F4F4F6]/40 hover:bg-[#F4F4F6]"
             >
-              <span className="text-[14px] font-medium text-[#2c1810] flex-1 min-w-[140px]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              <span className="text-[15px] font-bold text-[#111114] flex-1 min-w-[140px] font-['Space_Grotesk']">
                 {n.name}
               </span>
               <WeekStrip active={n.days} size="sm" tone="quiet" />
-              <span className="tabular text-[13px] text-[#2c1810]/70 w-[44px]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              <span className="tabular text-[13px] font-semibold text-[#111114]/80 w-[48px] font-['Space_Grotesk']">
                 {time(n.hour, n.minute)}
               </span>
-              <span className="text-[13px] text-[#2c1810]/50 hidden sm:inline w-[124px] truncate" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              <span className="text-[13px] font-medium text-[#111114]/70 hidden sm:inline w-[124px] truncate font-['Inter']">
                 {audienceOf(n.audience, students).length} recipients
               </span>
-              <Badge tone={n.status === "active" ? "accent" : "quiet"} className="rounded-[8px]">
+              <Badge tone={n.status === "active" ? "accent" : "quiet"} className="rounded-[4px] border border-[#111114] font-['Space_Grotesk'] font-bold">
                 {n.status === "active" ? "Active" : "Paused"}
               </Badge>
             </li>
@@ -313,29 +321,34 @@ export default function DashboardPage() {
       </section>
 
       {/* Recent activity */}
-      <section className="mt-10">
-        <h2 className="text-[13px] font-semibold tracking-wider uppercase text-[#2c1810]/70 mb-3.5" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Recent</h2>
+      <section className="mt-12">
+        <h2 className="text-[14px] font-bold tracking-wider uppercase text-[#111114] mb-4 font-['Space_Grotesk']">Recent</h2>
         <ul className="space-y-3">
           {recent.map((m) => (
-            <li key={m.id} className="flex items-baseline gap-3 text-[13.5px]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-              <span className="tabular text-[12px] text-[#2c1810]/50 w-[96px] shrink-0">
+            <li key={m.id} className="flex items-baseline gap-4 text-[14px] bg-[#F4F4F6] border-2 border-[#111114] p-3 rounded-[6px] shadow-[0_2px_0_#111114] font-['Inter']">
+              <span className="tabular text-[12px] font-bold text-[#111114]/70 w-[100px] shrink-0 font-['Space_Grotesk']">
                 {dateTime(m.sentAt ?? m.scheduledAt)}
               </span>
-              <span className="font-semibold text-[#2c1810] shrink-0">{nameOf(m.studentId)}</span>
+              <span className="font-bold text-[#111114] shrink-0 font-['Space_Grotesk']">{nameOf(m.studentId)}</span>
               {m.status === "failed" ? (
-                <span className="text-[#dc2626] text-[13px] font-medium">{m.error}</span>
+                <span className="text-[#E3341F] text-[13px] font-bold font-['Space_Grotesk'] flex items-center gap-1">
+                  <iconify-icon icon="line-md:close-circle" style={{ fontSize: "16px" }}></iconify-icon>
+                  {m.error}
+                </span>
               ) : (
-                <span className="text-[#2c1810]/70 truncate">{m.text}</span>
+                <span className="text-[#111114]/80 truncate font-medium">{m.text}</span>
               )}
             </li>
           ))}
         </ul>
         {failedThisWeek.length > 0 ? (
-          <p className="mt-4.5 text-[13px] text-[#dc2626] font-medium" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-            {failedThisWeek.length} message
-            {failedThisWeek.length === 1 ? "" : "s"} failed this week. Open Messages to
-            see why.
-          </p>
+          <div className="mt-5 p-4 bg-[#E3341F]/10 border-2 border-[#E3341F] rounded-[8px] flex items-center gap-3">
+            <iconify-icon icon="line-md:close-circle" style={{ fontSize: "24px", color: "#E3341F" }}></iconify-icon>
+            <p className="text-[14px] text-[#E3341F] font-bold font-['Space_Grotesk']">
+              {failedThisWeek.length} message
+              {failedThisWeek.length === 1 ? "" : "s"} failed this week. Open Messages to see why.
+            </p>
+          </div>
         ) : null}
       </section>
 
@@ -359,29 +372,37 @@ function Stat({
   value,
   label,
   tone = "neutral",
+  showAlertIcon = false,
 }: {
   value: number;
   label: string;
   tone?: "neutral" | "clay";
+  showAlertIcon?: boolean;
 }) {
   return (
-    <div className="bg-white rounded-[16px] px-5 py-6 border border-[#e6e1d5] shadow-[0_2px_6px_rgba(44,24,16,0.05)] shadow-[inset_0_2px_4px_rgba(44,24,16,0.02)]">
+    <div className={`rounded-[10px] p-6 border-2 border-[#111114] shadow-[0_4px_0_#111114] relative overflow-hidden ${
+      tone === "clay" && value > 0 ? "bg-[#E3341F]/10 border-[#E3341F]" : "bg-[#F4F4F6]"
+    }`}>
+      {showAlertIcon && (
+        <div className="absolute top-3 right-3 animate-pulse">
+          <iconify-icon icon="line-md:bell-loop" style={{ fontSize: "24px", color: "#E3341F" }}></iconify-icon>
+        </div>
+      )}
       <p
-        className={`text-[40px] font-extrabold leading-none ${
-          tone === "clay" && value > 0 ? "text-[#dc2626]" : "text-[#e05638]"
+        className={`text-[44px] font-extrabold leading-none font-['Space_Grotesk'] ${
+          tone === "clay" && value > 0 ? "text-[#E3341F]" : "text-[#111114]"
         }`}
-        style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
       >
         {value}
       </p>
-      <p className="text-[12px] font-semibold tracking-wider uppercase text-[#2c1810]/60 mt-3" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{label}</p>
+      <p className="text-[12px] font-bold tracking-wider uppercase text-[#111114] mt-4 font-['Space_Grotesk']">{label}</p>
     </div>
   );
 }
 
 function Avatar({ name }: { name: string }) {
   return (
-    <span className="w-8.5 h-8.5 shrink-0 rounded-full bg-[#f8f6f0] border border-[#e6e1d5] flex items-center justify-center text-[11px] font-bold text-[#2c1810]/70 shadow-[inset_0_1px_2px_rgba(44,24,16,0.05)]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <span className="w-9 h-9 shrink-0 rounded-[6px] bg-[#FFFFFF] border-2 border-[#111114] flex items-center justify-center text-[12px] font-bold text-[#111114] shadow-[0_2px_0_#111114] font-['Space_Grotesk']">
       {initials(name)}
     </span>
   );
