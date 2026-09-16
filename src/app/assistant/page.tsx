@@ -1,5 +1,3 @@
-<script src="https://cdn.jsdelivr.net/npm/iconify-icon@3.0.2/dist/iconify-icon.min.js"></script>
-
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -17,14 +15,6 @@ import { executeTool, snapshot } from "@/lib/assistant/execute";
 import { toBlocks, type Attachment } from "@/lib/assistant/attachments";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase/client";
 import type { ChatBlock, ChatMessage } from "@/lib/assistant/providers/types";
-
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'iconify-icon': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement> & { icon?: string; style?: React.CSSProperties }, HTMLElement>;
-    }
-  }
-}
 
 interface Turn {
   role: "user" | "assistant";

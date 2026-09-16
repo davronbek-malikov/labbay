@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { useEffect, type CSSProperties, type ReactNode } from "react";
 
 export function cx(...parts: Array<string | false | null | undefined>): string {
   return parts.filter(Boolean).join(" ");
@@ -110,9 +110,13 @@ type BadgeTone = "neutral" | "accent" | "clay" | "quiet";
 
 export function Badge({
   tone = "neutral",
+  className,
+  style,
   children,
 }: {
   tone?: BadgeTone;
+  className?: string;
+  style?: CSSProperties;
   children: ReactNode;
 }) {
   const tones: Record<BadgeTone, string> = {
@@ -126,7 +130,9 @@ export function Badge({
       className={cx(
         "inline-flex items-center h-[26px] px-2.5 text-[11.5px] font-semibold rounded-full",
         tones[tone],
+        className,
       )}
+      style={style}
     >
       {children}
     </span>

@@ -7,7 +7,7 @@ import { StudentsNav } from "@/components/students/StudentsNav";
 import { Badge, Button, Field, Select, Textarea, Toggle, cx } from "@/components/ui";
 import { useStore } from "@/lib/store/StoreProvider";
 import { composeFor, isQuietHour } from "@/lib/engine/send";
-import { audienceOf, groupNameOf, initials } from "@/lib/format";
+import { audienceOf, groupNameOf, initials, payStanding } from "@/lib/format";
 import type { Audience, Tone } from "@/lib/types";
 
 const TONES: Tone[] = ["warm", "direct", "playful", "formal"];
@@ -295,7 +295,9 @@ export default function SendPage() {
             </div>
           ) : (
             <ul className="space-y-5">
-              {recipients.slice(0, 4).map((s) => (
+              {recipients.slice(0, 4).map((s) => {
+                const owing = ["unpaid", "part"].includes(payStanding(s, db).state);
+                return (
                 <li key={s.id}>
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <div className="flex items-center gap-2">
@@ -304,7 +306,7 @@ export default function SendPage() {
                       </span>
                       <span className="text-[14px] font-bold text-[#111114] font-['Space_Grotesk',sans-serif]">{s.name}</span>
                     </div>
-                    {s.unpaid ? (
+                    {owing ? (
                       <span className="flex items-center gap-1 text-[11px] font-bold text-[#E3341F] bg-[#E3341F]/10 border border-[#E3341F] px-2 py-0.5 rounded-[4px]">
                         <iconify-icon icon="line-md:close-circle" style={{ fontSize: '12px', color: '#E3341F' }}></iconify-icon>
                         Unpaid Fee
@@ -335,7 +337,8 @@ export default function SendPage() {
                     )}
                   </p>
                 </li>
-              ))}
+                );
+              })}
             </ul>
           )}
         </div>

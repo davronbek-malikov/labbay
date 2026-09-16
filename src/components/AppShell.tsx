@@ -171,8 +171,8 @@ export function Page({
   backHref,
   children,
 }: {
-  title: string;
-  subtitle?: string;
+  title: React.ReactNode;
+  subtitle?: React.ReactNode;
   action?: React.ReactNode;
   /** Shown on phones, where the bottom nav cannot reach every screen. */
   backHref?: string;
