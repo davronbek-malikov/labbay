@@ -78,7 +78,7 @@ export default function CoursesPage() {
         title={live.name}
         subtitle={`${members.length} student${members.length === 1 ? "" : "s"} · ${money(live.fee, live.currency)} each`}
         action={
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <Button onClick={() => setOpenGroup(live)}>Edit course</Button>
             <Button variant="primary" onClick={() => setOpenStudent("new")}>
               Add student
@@ -86,10 +86,14 @@ export default function CoursesPage() {
           </div>
         }
       >
+        <script src="https://unpkg.com/@lottiefiles/lottie-player@2.0.4/dist/lottie-player.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/iconify-icon@3.0.2/dist/iconify-icon.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.browser.js"></script>
+
         <button
           type="button"
           onClick={() => setInsideGroup(null)}
-          className="text-[13.5px] font-semibold text-[#e05638] hover:text-[#2c1810] mb-5 flex items-center gap-1 transition-colors"
+          className="text-[14px] font-['Space_Grotesk',sans-serif] font-bold text-[#FF4B2B] hover:underline mb-6 flex items-center gap-1.5 transition-colors"
         >
           ‹ All courses
         </button>
@@ -97,9 +101,9 @@ export default function CoursesPage() {
         <CourseDates group={live} />
 
         {live.notes ? (
-          <section className="bg-[#ffffff] border border-[#e6e1d5] rounded-[16px] p-[21px] mt-4 shadow-[0_2px_6px_rgba(44,24,16,0.05)]">
-            <p className="text-[11px] font-bold text-[#f59e0b] uppercase tracking-[0.06em] mb-2">Notes</p>
-            <p className="text-[13.5px] text-[#2c1810]/70 leading-relaxed whitespace-pre-wrap font-['Plus_Jakarta_Sans',sans-serif]">
+          <section className="bg-[#F4F4F6] border-2 border-[#111114] rounded-[10px] p-[27px] mt-5 shadow-[0_4px_0_#111114]">
+            <p className="text-[12px] font-bold text-[#111114] uppercase tracking-[0.08em] mb-2 font-['Space_Grotesk',sans-serif]">Notes</p>
+            <p className="text-[14px] text-[#111114] leading-relaxed whitespace-pre-wrap font-['Inter',sans-serif]">
               {live.notes}
             </p>
           </section>
@@ -107,13 +111,13 @@ export default function CoursesPage() {
 
         <SyllabusEditor group={live} />
 
-        <div className="flex flex-wrap items-baseline justify-between gap-2 mt-8 mb-2 px-1">
-          <p className="text-[11px] font-bold text-[#2c1810]/60 uppercase tracking-[0.06em]">
+        <div className="flex flex-wrap items-baseline justify-between gap-3 mt-10 mb-3 px-1">
+          <p className="text-[12px] font-bold text-[#111114] uppercase tracking-[0.08em] font-['Space_Grotesk',sans-serif]">
             Students · {members.length}
           </p>
           <Link
             href="/students"
-            className="text-[12.5px] font-semibold text-[#e05638] hover:text-[#2c1810] transition-colors"
+            className="text-[13px] font-bold text-[#FF4B2B] hover:underline transition-colors font-['Space_Grotesk',sans-serif]"
           >
             Manage in Students
           </Link>
@@ -130,18 +134,38 @@ export default function CoursesPage() {
             }
           />
         ) : (
-          <div className="bg-[#ffffff] border border-[#e6e1d5] rounded-[16px] overflow-hidden shadow-[0_2px_6px_rgba(44,24,16,0.05)] divide-y divide-[#e6e1d5]">
-            {members.map((s) => (
-              <Link key={s.id} href={`/students/${s.id}`} className="flex items-center gap-3.5 p-4 hover:bg-[#f8f6f0] transition-colors">
-                <span className="w-9 h-9 shrink-0 rounded-full bg-[#e05638]/10 text-[#e05638] grid place-items-center text-[11.5px] font-bold">
-                  {initials(s.name)}
-                </span>
-                <span className="flex-1 min-w-0">
-                  <span className="text-[14px] font-semibold text-[#2c1810] block truncate">{s.name}</span>
-                </span>
-                <span className="text-[#2c1810]/40 text-[15px]">›</span>
-              </Link>
-            ))}
+          <div className="bg-[#FFFFFF] border-2 border-[#111114] rounded-[10px] overflow-hidden shadow-[0_4px_0_#111114] divide-y-2 divide-[#111114]">
+            {members.map((s) => {
+              const paid = totalPaid(s.id, db.payments);
+              const hasUnpaid = paid < live.fee;
+              return (
+                <Link key={s.id} href={`/students/${s.id}`} className="flex items-center gap-4 p-5 hover:bg-[#F4F4F6] transition-colors">
+                  <span className="w-10 h-10 shrink-0 rounded-[6px] bg-[#FF4B2B] text-[#FFFFFF] border-2 border-[#111114] grid place-items-center text-[13px] font-bold font-['Space_Grotesk',sans-serif] shadow-[0_2px_0_#111114]">
+                    {initials(s.name)}
+                  </span>
+                  <span className="flex-1 min-w-0">
+                    <span className="text-[15px] font-bold text-[#111114] font-['Space_Grotesk',sans-serif] block truncate">{s.name}</span>
+                    <span className="text-[12px] text-[#111114]/70 block truncate mt-0.5 font-['Inter',sans-serif]">
+                      Paid: {money(paid, live.currency)} of {money(live.fee, live.currency)}
+                    </span>
+                  </span>
+                  {hasUnpaid && (
+                    <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] bg-[#E3341F]/10 border-2 border-[#E3341F] text-[#E3341F] text-[11px] font-bold font-['Space_Grotesk',sans-serif]">
+                      <lottie-player
+                        src="https://cdn.jsdelivr.net/npm/react-useanimations@2.10.0/lib/error/error.json"
+                        background="transparent"
+                        speed="1"
+                        style={{ width: "18px", height: "18px" }}
+                        loop
+                        autoplay
+                      ></lottie-player>
+                      Unpaid Fee
+                    </span>
+                  )}
+                  <span className="text-[#111114] text-[18px] font-bold">›</span>
+                </Link>
+              );
+            })}
           </div>
         )}
 
@@ -162,19 +186,20 @@ export default function CoursesPage() {
         </Button>
       }
     >
+      <script src="https://unpkg.com/@lottiefiles/lottie-player@2.0.4/dist/lottie-player.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/iconify-icon@3.0.2/dist/iconify-icon.min.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.browser.js"></script>
 
-      <div className="flex bg-[#e6e1d5]/40 p-1 rounded-[16px] max-w-[320px] mb-5 border border-[#e6e1d5]">
+      <div className="flex bg-[#F4F4F6] p-1 rounded-[8px] max-w-[340px] mb-6 border-2 border-[#111114] shadow-[0_2px_0_#111114]">
         {(["group", "individual"] as const).map((t) => (
           <button
             key={t}
             type="button"
             className={cx(
-              "flex-1 py-1.5 text-[13px] font-semibold rounded-[8px] transition-all",
+              "flex-1 py-2 text-[13px] font-bold font-['Space_Grotesk',sans-serif] rounded-[6px] transition-all",
               tab === t
-                ? "bg-[#ffffff] text-[#2c1810] shadow-[0_2px_6px_rgba(44,24,16,0.05)]"
-                : "text-[#2c1810]/60 hover:text-[#2c1810]"
+                ? "bg-[#FF4B2B] text-[#FFFFFF] border-2 border-[#111114] shadow-[0_2px_0_#111114]"
+                : "text-[#111114] hover:bg-[#FFFFFF]"
             )}
             aria-pressed={tab === t}
             onClick={() => setTab(t)}
@@ -184,13 +209,13 @@ export default function CoursesPage() {
         ))}
       </div>
 
-      <div className="relative mb-5">
-        <IconSearch className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-[#2c1810]/40 pointer-events-none" />
+      <div className="relative mb-6">
+        <IconSearch className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-[#111114] pointer-events-none" />
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search course or student"
-          className="pl-10 bg-[#ffffff] border-[#e6e1d5] rounded-[8px] focus:ring-2 focus:ring-[#e05638]"
+          className="pl-11 bg-[#FFFFFF] border-2 border-[#111114] rounded-[6px] shadow-[0_2px_0_#111114] focus:ring-0 focus:border-[#FF4B2B] font-['Inter',sans-serif]"
           aria-label="Search courses"
         />
       </div>
@@ -220,7 +245,7 @@ export default function CoursesPage() {
           }
         />
       ) : tab === "group" ? (
-        <ul className="space-y-4">
+        <ul className="space-y-5">
           {visibleCourses.map((g) => {
             const members = studentsIn(g.id, db.students);
             const collected = members.reduce(
@@ -228,17 +253,34 @@ export default function CoursesPage() {
               0,
             );
             const expected = g.fee * members.length;
+            const hasUnpaidStudents = members.some((s) => totalPaid(s.id, db.payments) < g.fee);
+
             return (
               <li key={g.id}>
                 <button
                   type="button"
                   onClick={() => setInsideGroup(g)}
-                  className="bg-[#ffffff] border border-[#e6e1d5] rounded-[16px] w-full text-left p-[21px] shadow-[0_2px_6px_rgba(44,24,16,0.05)] hover:shadow-[0_12px_32px_-8px_rgba(224,86,56,0.12)] hover:border-[#e05638]/40 transition-all group"
+                  className="bg-[#F4F4F6] border-2 border-[#111114] rounded-[10px] w-full text-left p-[27px] shadow-[0_4px_0_#111114] hover:translate-y-[-2px] hover:shadow-[0_6px_0_#111114] transition-all group"
                 >
-                  <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="min-w-0">
-                      <p className="text-[17px] font-bold text-[#2c1810] group-hover:text-[#e05638] transition-colors">{g.name}</p>
-                      <p className="text-[13px] text-[#2c1810]/60 mt-0.5 font-medium">
+                      <div className="flex items-center gap-2">
+                        <p className="text-[19px] font-bold font-['Space_Grotesk',sans-serif] text-[#111114] group-hover:text-[#FF4B2B] transition-colors">{g.name}</p>
+                        {hasUnpaidStudents && (
+                          <span className="flex items-center gap-1 text-[#E3341F] bg-[#E3341F]/10 border-2 border-[#E3341F] px-2 py-0.5 rounded-[4px] text-[11px] font-bold font-['Space_Grotesk',sans-serif]">
+                            <lottie-player
+                              src="https://cdn.jsdelivr.net/npm/react-useanimations@2.10.0/lib/error/error.json"
+                              background="transparent"
+                              speed="1"
+                              style={{ width: "16px", height: "16px" }}
+                              loop
+                              autoplay
+                            ></lottie-player>
+                            Unpaid Fees
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[13px] text-[#111114]/80 mt-1 font-['Inter',sans-serif] font-medium">
                         {members.length} student{members.length === 1 ? "" : "s"} ·{" "}
                         {money(g.fee, g.currency)} each
                         {g.topics.length ? ` · ${g.topics.length} topics` : ""}
@@ -247,17 +289,17 @@ export default function CoursesPage() {
                     <ExamBadge group={g} />
                   </div>
 
-                  <div className="flex flex-wrap gap-x-8 gap-y-3 mt-4 pt-4 border-t border-[#e6e1d5]/60">
+                  <div className="flex flex-wrap gap-x-10 gap-y-4 mt-5 pt-5 border-t-2 border-[#111114]">
                     <Fact label="Starts" value={longDate(g.startDate)} />
                     <Fact label="Ends" value={longDate(g.endDate)} />
                     <Fact label="Final exam" value={longDate(g.finalExamDate)} />
                   </div>
 
                   {expected > 0 ? (
-                    <div className="mt-4">
-                      <div className="flex items-baseline justify-between text-[12.5px] mb-1.5">
-                        <span className="text-[#2c1810]/60 font-medium">Collected</span>
-                        <span className="tabular font-semibold text-[#2c1810]">
+                    <div className="mt-5">
+                      <div className="flex items-baseline justify-between text-[13px] mb-2 font-['Space_Grotesk',sans-serif]">
+                        <span className="text-[#111114] font-bold">Collected</span>
+                        <span className="tabular font-bold text-[#111114]">
                           {money(collected, g.currency)} of{" "}
                           {money(expected, g.currency)}
                         </span>
@@ -271,23 +313,40 @@ export default function CoursesPage() {
           })}
         </ul>
       ) : (
-        <div className="bg-[#ffffff] border border-[#e6e1d5] rounded-[16px] overflow-hidden shadow-[0_2px_6px_rgba(44,24,16,0.05)] divide-y divide-[#e6e1d5]">
+        <div className="bg-[#FFFFFF] border-2 border-[#111114] rounded-[10px] overflow-hidden shadow-[0_4px_0_#111114] divide-y-2 divide-[#111114]">
           {visibleCourses.map((g) => {
             const student = studentsIn(g.id, db.students)[0];
             const paid = student ? totalPaid(student.id, db.payments) : 0;
+            const isUnpaid = student && paid < g.fee;
+
             return (
-              <div key={g.id} className="flex items-center gap-4 p-4 hover:bg-[#f8f6f0]/50 transition-colors" style={{ cursor: "default" }}>
-                <span className="w-10 h-10 shrink-0 rounded-full bg-[#f59e0b]/15 text-[#2c1810] grid place-items-center text-[12px] font-bold border border-[#f59e0b]/30">
+              <div key={g.id} className="flex items-center gap-5 p-5 hover:bg-[#F4F4F6] transition-colors" style={{ cursor: "default" }}>
+                <span className="w-11 h-11 shrink-0 rounded-[6px] bg-[#F4F4F6] text-[#111114] grid place-items-center text-[13px] font-bold font-['Space_Grotesk',sans-serif] border-2 border-[#111114] shadow-[0_2px_0_#111114]">
                   {student ? initials(student.name) : "—"}
                 </span>
                 <span className="flex-1 min-w-0">
-                  <span className="text-[15px] font-bold text-[#2c1810] block truncate">{student?.name ?? g.name}</span>
-                  <span className="text-[12.5px] text-[#2c1810]/60 block truncate mt-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[16px] font-bold text-[#111114] font-['Space_Grotesk',sans-serif] block truncate">{student?.name ?? g.name}</span>
+                    {isUnpaid && (
+                      <span className="inline-flex items-center gap-1 text-[#E3341F] bg-[#E3341F]/10 border-2 border-[#E3341F] px-2 py-0.5 rounded-[4px] text-[11px] font-bold font-['Space_Grotesk',sans-serif]">
+                        <lottie-player
+                          src="https://cdn.jsdelivr.net/npm/react-useanimations@2.10.0/lib/error/error.json"
+                          background="transparent"
+                          speed="1"
+                          style={{ width: "16px", height: "16px" }}
+                          loop
+                          autoplay
+                        ></lottie-player>
+                        Unpaid
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[13px] text-[#111114]/70 block truncate mt-0.5 font-['Inter',sans-serif]">
                     {g.name} · exam {longDate(g.finalExamDate)} ·{" "}
                     {money(paid, g.currency)} of {money(g.fee, g.currency)}
                   </span>
                 </span>
-                <span className="flex items-center gap-2 shrink-0">
+                <span className="flex items-center gap-3 shrink-0">
                   {student ? (
                     <Button onClick={() => setPayingFor(student)}>Payment</Button>
                   ) : (
@@ -321,10 +380,10 @@ export default function CoursesPage() {
 function Fact({ label, value }: { label: string; value: string }) {
   return (
     <span>
-      <span className="block text-[11px] text-[#2c1810]/50 uppercase tracking-[0.06em] font-semibold">
+      <span className="block text-[11px] text-[#111114]/70 uppercase tracking-[0.08em] font-bold font-['Space_Grotesk',sans-serif]">
         {label}
       </span>
-      <span className="block tabular text-[13.5px] font-semibold text-[#2c1810] mt-0.5">
+      <span className="block tabular text-[14px] font-bold font-['Inter',sans-serif] text-[#111114] mt-0.5">
         {value}
       </span>
     </span>
@@ -333,7 +392,7 @@ function Fact({ label, value }: { label: string; value: string }) {
 
 function CourseDates({ group }: { group: Group }) {
   return (
-    <div className="bg-[#ffffff] border border-[#e6e1d5] rounded-[16px] p-[21px] flex flex-wrap gap-x-9 gap-y-4 shadow-[0_2px_6px_rgba(44,24,16,0.05)]">
+    <div className="bg-[#F4F4F6] border-2 border-[#111114] rounded-[10px] p-[27px] flex flex-wrap gap-x-12 gap-y-5 shadow-[0_4px_0_#111114]">
       <Fact label="Starts" value={longDate(group.startDate)} />
       <Fact label="Ends" value={longDate(group.endDate)} />
       <Fact label="Final exam" value={longDate(group.finalExamDate)} />
@@ -356,17 +415,22 @@ function Bar({ value, of }: { value: number; of: number }) {
   const isLoading = pct < 100;
 
   return (
-    <div className="relative p-1 rounded-[8px] border border-dashed border-[#e6e1d5] shadow-[inset_0_2px_4px_rgba(44,24,16,0.06)] bg-[#f8f6f0]">
-      <div className="h-2 rounded-[4px] bg-[#e6e1d5]/50 overflow-hidden relative">
+    <div className="relative p-1.5 rounded-[6px] border-2 border-[#111114] bg-[#FFFFFF] shadow-[0_2px_0_#111114]">
+      <div className="h-3 rounded-[4px] bg-[#F4F4F6] border border-[#111114] overflow-hidden relative">
         <div
-          className={cx("h-full rounded-[4px] transition-all duration-500", pct >= 100 ? "bg-[#10b981]" : "bg-[#e05638]")}
+          className={cx("h-full rounded-[2px] transition-all duration-500", pct >= 100 ? "bg-[#0B8F5C]" : "bg-[#FF4B2B]")}
           style={{ width: `${pct}%` }}
         />
       </div>
-      {isLoading && (
-        <div className="absolute right-2 -top-6 flex items-center gap-1 text-[11px] font-medium text-[#e05638]">
-          <iconify-icon icon="svg-spinners:ring-resize" style={{ fontSize: '12px', color: '#e05638' }}></iconify-icon>
-          <span>In progress</span>
+      {isLoading ? (
+        <div className="absolute right-3 -top-7 flex items-center gap-1.5 text-[11px] font-bold font-['Space_Grotesk',sans-serif] text-[#E3341F]">
+          <iconify-icon icon="line-md:loading-loop" style={{ fontSize: '14px', color: '#E3341F' }}></iconify-icon>
+          <span>Unpaid balance</span>
+        </div>
+      ) : (
+        <div className="absolute right-3 -top-7 flex items-center gap-1 text-[11px] font-bold font-['Space_Grotesk',sans-serif] text-[#0B8F5C]">
+          <iconify-icon icon="line-md:confirm-circle" style={{ fontSize: '14px', color: '#0B8F5C' }}></iconify-icon>
+          <span>Fully Paid</span>
         </div>
       )}
     </div>

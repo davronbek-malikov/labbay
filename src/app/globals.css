@@ -1,36 +1,37 @@
 @import "tailwindcss";
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 
 @theme {
-  --color-canvas: #f8f6f0;
-  --color-paper: #ffffff;
-  --color-shell: #f8f6f0;
-  --color-field: #f8f6f0;
+  --color-canvas: #ffffff;
+  --color-paper: #f4f4f6;
+  --color-shell: #f4f4f6;
+  --color-field: #ffffff;
 
-  --color-forest: #e05638;
-  --color-accent: #e05638;
-  --color-accent-deep: #2c1810;
-  --color-mint: #f59e0b;
+  --color-forest: #0b8f5c;
+  --color-accent: #ff4b2b;
+  --color-accent-deep: #111114;
+  --color-mint: #0b8f5c;
 
-  --color-ink: #2c1810;
-  --color-muted: #2c1810;
-  --color-faint: #2c1810;
-  --color-line: #e6e1d5;
-  --color-line-soft: #e6e1d5;
+  --color-ink: #111114;
+  --color-muted: #111114;
+  --color-faint: #111114;
+  --color-line: #111114;
+  --color-line-soft: #111114;
 
-  --color-clay: #e05638;
-  --color-clay-soft: #f8f6f0;
+  --color-clay: #e3341f;
+  --color-clay-soft: #f4f4f6;
 
-  --color-chip-green: #10b981;
-  --color-chip-forest: #e05638;
-  --color-chip-blue: #f59e0b;
-  --color-chip-violet: #e05638;
-  --color-chip-amber: #f59e0b;
-  --color-chip-clay: #dc2626;
-  --color-chip-slate: #2c1810;
+  --color-chip-green: #0b8f5c;
+  --color-chip-forest: #0b8f5c;
+  --color-chip-blue: #ff4b2b;
+  --color-chip-violet: #ff4b2b;
+  --color-chip-amber: #ff4b2b;
+  --color-chip-clay: #e3341f;
+  --color-chip-slate: #111114;
 
-  --font-sans: 'Plus Jakarta Sans', sans-serif;
+  --font-sans: 'Inter', sans-serif;
+  --font-heading: 'Space Grotesk', sans-serif;
   --font-mono: ui-monospace, monospace;
 }
 
@@ -41,9 +42,9 @@
   }
 
   body {
-    background: #f8f6f0;
-    color: #2c1810;
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: #ffffff;
+    color: #111114;
+    font-family: 'Inter', sans-serif;
     font-size: 15px;
     line-height: 1.5;
   }
@@ -55,59 +56,59 @@
 
   .label {
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: #2c1810;
-    opacity: 0.7;
+    color: #111114;
+    opacity: 0.85;
   }
 
   .display {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Space Grotesk', sans-serif;
     font-weight: 700;
     letter-spacing: -0.03em;
     line-height: 1.1;
-    color: #2c1810;
+    color: #111114;
   }
 
   .figure {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Space Grotesk', sans-serif;
     font-weight: 700;
     letter-spacing: -0.04em;
     font-variant-numeric: tabular-nums;
     line-height: 1;
-    color: #2c1810;
+    color: #111114;
   }
 
   :focus-visible {
-    outline: 2px solid #e05638;
+    outline: 2px solid #ff4b2b;
     outline-offset: 2px;
-    border-radius: 8px;
+    border-radius: 4px;
   }
 
   ::selection {
-    background: #f59e0b;
+    background: #ff4b2b;
     color: #ffffff;
   }
 }
 
 @layer utilities {
   .card {
-    background: #ffffff;
-    border-radius: 28px;
-    border: 1px dashed #e6e1d5;
-    box-shadow: inset 0 2px 4px rgba(44, 24, 16, 0.04), 0 12px 32px -8px rgba(224, 86, 56, 0.12);
+    background: #f4f4f6;
+    border-radius: 10px;
+    border: 2px solid #111114;
+    box-shadow: 0 4px 0 #111114;
   }
 
   .card-mint {
-    background: #ffffff;
-    border-radius: 28px;
-    border: 1px dashed #e6e1d5;
-    box-shadow: inset 0 2px 4px rgba(44, 24, 16, 0.04), 0 2px 6px rgba(44, 24, 16, 0.05);
+    background: #f4f4f6;
+    border-radius: 10px;
+    border: 2px solid #111114;
+    box-shadow: 0 2px 0 #111114;
   }
 
   .lift {
-    box-shadow: inset 0 2px 4px rgba(44, 24, 16, 0.03), 0 12px 32px -8px rgba(224, 86, 56, 0.12);
+    box-shadow: 0 4px 0 #111114;
   }
 
   /* Custom loading animation container styling */
@@ -115,11 +116,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 16.8px;
-    border: 1px dashed #e6e1d5;
-    border-radius: 16px;
-    background: #ffffff;
-    box-shadow: inset 0 2px 4px rgba(44, 24, 16, 0.05);
+    padding: 21.84px;
+    border: 2px solid #111114;
+    border-radius: 10px;
+    background: #f4f4f6;
+    box-shadow: 0 2px 0 #111114;
   }
 }
 
@@ -143,46 +144,47 @@
 /* ------------------------------------------------- settings list pattern */
 @layer components {
   .set-card {
-    background: #ffffff;
-    border-radius: 28px;
-    border: 1px dashed #e6e1d5;
-    box-shadow: inset 0 2px 4px rgba(44, 24, 16, 0.03), 0 2px 6px rgba(44, 24, 16, 0.05);
+    background: #f4f4f6;
+    border-radius: 10px;
+    border: 2px solid #111114;
+    box-shadow: 0 4px 0 #111114;
     overflow: hidden;
   }
 
   .set-row {
     display: flex;
     align-items: center;
-    gap: 12.6px;
+    gap: 16.38px;
     width: 100%;
-    padding: 11.55px 14.7px;
+    padding: 15.01px 19.11px;
     border: none;
     background: none;
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 15px;
     text-align: left;
-    color: #2c1810;
+    color: #111114;
     cursor: pointer;
     transition: background-color 0.12s, transform 0.1s;
   }
 
   .set-row:hover {
-    background: #f8f6f0;
+    background: #ffffff;
   }
 
   .set-row + .set-row {
-    border-top: 1px solid #e6e1d5;
+    border-top: 2px solid #111114;
   }
 
   .set-chip {
     width: 39.9px;
     height: 39.9px;
-    border-radius: 16px;
+    border-radius: 6px;
     display: grid;
     place-items: center;
     color: #ffffff;
     flex: none;
-    box-shadow: 0 2px 6px rgba(44, 24, 16, 0.05);
+    border: 2px solid #111114;
+    box-shadow: 0 2px 0 #111114;
   }
 
   .set-text {
@@ -191,58 +193,59 @@
   }
 
   .set-title {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Space Grotesk', sans-serif;
     font-size: 14px;
     font-weight: 600;
     letter-spacing: -0.01em;
-    color: #2c1810;
+    color: #111114;
   }
 
   .set-sub {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 12.5px;
-    color: #2c1810;
-    opacity: 0.7;
+    color: #111114;
+    opacity: 0.75;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
   .set-chevron {
-    color: #e05638;
+    color: #ff4b2b;
     flex: none;
   }
 
   .seg {
     display: flex;
-    gap: 4.2px;
-    padding: 4.2px;
-    background: #f8f6f0;
-    border-radius: 28px;
-    border: 1px dashed #e6e1d5;
-    box-shadow: inset 0 2px 4px rgba(44, 24, 16, 0.04);
+    gap: 5.46px;
+    padding: 5.46px;
+    background: #f4f4f6;
+    border-radius: 10px;
+    border: 2px solid #111114;
+    box-shadow: 0 2px 0 #111114;
   }
 
   .seg-btn {
     flex: 1 1 0;
     min-width: 0;
     height: 37.8px;
-    border: none;
+    border: 2px solid transparent;
     background: none;
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Space Grotesk', sans-serif;
     font-size: 13px;
     font-weight: 600;
-    color: #2c1810;
-    opacity: 0.7;
-    border-radius: 28px;
+    color: #111114;
+    opacity: 0.75;
+    border-radius: 6px;
     cursor: pointer;
     transition: all 0.12s;
   }
 
   .seg-btn[aria-pressed="true"] {
     background: #ffffff;
-    color: #e05638;
+    color: #ff4b2b;
     opacity: 1;
-    box-shadow: 0 2px 6px rgba(44, 24, 16, 0.05);
+    border-color: #111114;
+    box-shadow: 0 2px 0 #111114;
   }
 }
