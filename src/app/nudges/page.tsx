@@ -19,21 +19,28 @@ export default function NudgesPage() {
     <>
       <Script src="https://cdn.jsdelivr.net/npm/iconify-icon@3.0.2/dist/iconify-icon.min.js" strategy="afterInteractive" />
       <Script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.browser.js" strategy="afterInteractive" />
+      <Script src="https://unpkg.com/@lottiefiles/lottie-player@2.0.4/dist/lottie-player.js" strategy="afterInteractive" />
       <Page
         title={
-          <span className="flex items-center gap-2.5 font-['Plus_Jakarta_Sans'] text-[#2c1810]">
-            <iconify-icon icon="line-md:bell-loop" style={{ fontSize: "28px", color: "#e05638" }}></iconify-icon>
+          <span className="flex items-center gap-3 font-['Space_Grotesk'] text-[#111114] font-bold text-2xl tracking-tight">
+            <iconify-icon icon="line-md:bell-loop" style={{ fontSize: "32px", color: "#FF4B2B" }}></iconify-icon>
             Nudges
           </span>
         }
         subtitle={
-          nudges.length === 0
-            ? "Scheduled messages that go out on their own."
-            : `${activeCount} running · ${nudges.length - activeCount} paused`
+          <span className="font-['Inter'] text-[#111114] text-sm">
+            {nudges.length === 0
+              ? "Scheduled messages that go out on their own."
+              : `${activeCount} running · ${nudges.length - activeCount} paused`}
+          </span>
         }
         action={
           <Link href="/nudges/new">
-            <Button variant="primary" style={{ backgroundColor: "#e05638", borderRadius: "16px", color: "#ffffff", boxShadow: "0 2px 6px rgba(44, 24, 16, 0.05)" }}>
+            <Button
+              variant="primary"
+              className="font-['Space_Grotesk'] font-bold border-2 border-[#111114] text-[#FFFFFF] shadow-[0_4px_0_rgba(17,17,20,1)] hover:translate-y-[-2px] transition-transform"
+              style={{ backgroundColor: "#FF4B2B", borderRadius: "6px" }}
+            >
               New nudge
             </Button>
           </Link>
@@ -42,55 +49,77 @@ export default function NudgesPage() {
         <StudentsNav />
 
         {nudges.length === 0 ? (
-          <div className="bg-[#ffffff] rounded-[28px] border border-dashed border-[#e6e1d5] p-8 shadow-[inset_0_2px_6px_rgba(44,24,16,0.03)] text-center">
+          <div className="bg-[#F4F4F6] rounded-[10px] border-2 border-[#111114] p-10 shadow-[0_4px_0_rgba(17,17,20,1)] text-center font-['Inter']">
             <EmptyState
               title="No nudges yet"
               body="A nudge is a message that goes out on a schedule — a homework check on Mondays, a well done on Fridays. Set one up and it runs without you."
               action={
                 <Link href="/nudges/new">
-                  <Button variant="primary" style={{ backgroundColor: "#e05638", borderRadius: "16px" }}>Create your first nudge</Button>
+                  <Button
+                    variant="primary"
+                    className="font-['Space_Grotesk'] font-bold border-2 border-[#111114] text-[#FFFFFF] shadow-[0_2px_0_rgba(17,17,20,1)]"
+                    style={{ backgroundColor: "#FF4B2B", borderRadius: "6px" }}
+                  >
+                    Create your first nudge
+                  </Button>
                 </Link>
               }
             />
           </div>
         ) : (
-          <ul className="space-y-3.5 font-['Plus_Jakarta_Sans']">
+          <ul className="space-y-5 font-['Inter']">
             {nudges.map((n) => {
               const recipients = audienceOf(n.audience, students);
               return (
                 <li
                   key={n.id}
-                  className="bg-[#ffffff] rounded-[16px] border border-[#e6e1d5] p-[22px] shadow-[0_2px_6px_rgba(44,24,16,0.05)] hover:shadow-[0_12px_32px_-8px_rgba(224,86,56,0.12)] transition-all duration-200"
-                  style={{ backgroundColor: "#ffffff" }}
+                  className="bg-[#F4F4F6] rounded-[10px] border-2 border-[#111114] p-7 shadow-[0_4px_0_rgba(17,17,20,1)] transition-all"
                 >
-                  <div className="flex flex-wrap items-start justify-between gap-3.5">
+                  <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="min-w-0">
                       <div className="flex items-center gap-3 flex-wrap">
-                        <h2 className="text-[15.5px] font-semibold text-[#2c1810] flex items-center gap-2">
+                        <h2 className="text-lg font-bold font-['Space_Grotesk'] text-[#111114] flex items-center gap-2">
                           {n.status === "active" && (
-                            <iconify-icon icon="line-md:loading-loop" style={{ fontSize: "16px", color: "#10b981" }}></iconify-icon>
+                            <iconify-icon icon="line-md:loading-loop" style={{ fontSize: "18px", color: "#0B8F5C" }}></iconify-icon>
                           )}
                           {n.name}
                         </h2>
-                        <Badge tone={n.status === "active" ? "accent" : "quiet"} style={{ borderRadius: "8px" }}>
+                        <Badge
+                          tone={n.status === "active" ? "accent" : "quiet"}
+                          className="font-['Space_Grotesk'] border border-[#111114] font-medium"
+                          style={{ borderRadius: "4px" }}
+                        >
                           {n.status === "active" ? "Active" : "Paused"}
                         </Badge>
                         {n.personalize ? (
-                          <Badge tone="neutral" style={{ borderRadius: "8px" }}>Personalised</Badge>
+                          <Badge
+                            tone="neutral"
+                            className="font-['Space_Grotesk'] border border-[#111114] font-medium"
+                            style={{ borderRadius: "4px" }}
+                          >
+                            Personalised
+                          </Badge>
                         ) : null}
                       </div>
-                      <p className="mt-1.5 text-[13.5px] text-[#2c1810]/70 max-w-xl leading-relaxed">
+                      <p className="mt-2 text-sm text-[#111114]/80 max-w-xl leading-relaxed">
                         {n.intent}
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-1.5 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0">
                       <Link href={`/nudges/${n.id}`}>
-                        <Button variant="ghost" className="text-[#2c1810] hover:bg-[#f8f6f0] rounded-[8px]">Edit</Button>
+                        <Button
+                          variant="ghost"
+                          className="text-[#111114] hover:bg-[#FFFFFF] border-2 border-[#111114] shadow-[0_2px_0_rgba(17,17,20,1)] font-['Space_Grotesk'] font-bold text-xs"
+                          style={{ borderRadius: "6px" }}
+                        >
+                          Edit
+                        </Button>
                       </Link>
                       <Button
                         variant="ghost"
-                        className="text-[#2c1810] hover:bg-[#f8f6f0] rounded-[8px]"
+                        className="text-[#111114] hover:bg-[#FFFFFF] border-2 border-[#111114] shadow-[0_2px_0_rgba(17,17,20,1)] font-['Space_Grotesk'] font-bold text-xs"
+                        style={{ borderRadius: "6px" }}
                         onClick={() =>
                           updateNudge(n.id, {
                             status: n.status === "active" ? "paused" : "active",
@@ -101,7 +130,8 @@ export default function NudgesPage() {
                       </Button>
                       <Button
                         variant="ghost"
-                        className="text-[#2c1810] hover:bg-[#f8f6f0] rounded-[8px]"
+                        className="text-[#111114] hover:bg-[#FFFFFF] border-2 border-[#111114] shadow-[0_2px_0_rgba(17,17,20,1)] font-['Space_Grotesk'] font-bold text-xs"
+                        style={{ borderRadius: "6px" }}
                         onClick={() => {
                           const { id, createdAt, ...rest } = n;
                           void id;
@@ -111,9 +141,10 @@ export default function NudgesPage() {
                       >
                         Duplicate
                       </Button>
-                      <Button 
-                        variant="ghost" 
-                        className="text-[#dc2626] hover:bg-[#dc2626]/10 rounded-[8px]"
+                      <Button
+                        variant="ghost"
+                        className="text-[#E3341F] hover:bg-[#E3341F]/10 border-2 border-[#111114] shadow-[0_2px_0_rgba(17,17,20,1)] font-['Space_Grotesk'] font-bold text-xs"
+                        style={{ borderRadius: "6px" }}
                         onClick={() => removeNudge(n.id)}
                       >
                         Delete
@@ -121,18 +152,18 @@ export default function NudgesPage() {
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-x-5 gap-y-3 mt-4.5 pt-4.5 border-t border-[#e6e1d5] bg-[#f8f6f0]/50 -mx-[22px] -mb-[22px] px-[22px] py-3 rounded-b-[16px] border-dashed">
-                    <div className="flex items-center gap-2.5">
+                  <div className="flex flex-wrap items-center gap-x-6 gap-y-3 mt-6 pt-5 border-t-2 border-[#111114] bg-[#FFFFFF] -mx-7 -mb-7 px-7 py-4 rounded-b-[8px]">
+                    <div className="flex items-center gap-3">
                       <WeekStrip active={n.days} size="md" />
-                      <span className="tabular text-[13px] font-medium text-[#2c1810]">
+                      <span className="tabular text-sm font-bold text-[#111114] font-['Space_Grotesk']">
                         {time(n.hour, n.minute)}
                       </span>
                     </div>
-                    <span className="text-[13px] text-[#2c1810]/70">
+                    <span className="text-sm text-[#111114]">
                       {audienceLabel(n.audience, students, groups)} ·{" "}
-                      <span className="tabular font-semibold text-[#e05638]">{recipients.length}</span> recipients
+                      <span className="tabular font-bold text-[#FF4B2B]">{recipients.length}</span> recipients
                     </span>
-                    <span className="text-[13px] text-[#2c1810]/50 italic">
+                    <span className="text-sm text-[#111114]/60 italic">
                       {n.days.length === 0
                         ? "No days set"
                         : n.days.map((d) => DAY_NAMES[d].slice(0, 3)).join(", ")}
