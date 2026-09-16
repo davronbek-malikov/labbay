@@ -14,15 +14,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="h-full bg-[#f8f6f0] text-[#2c1810] antialiased">
+    <html lang="en" className="h-full bg-[#FFFFFF] text-[#111114] antialiased">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+        <script src="https://unpkg.com/@lottiefiles/lottie-player@2.0.4/dist/lottie-player.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/iconify-icon@3.0.2/dist/iconify-icon.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.browser.js"></script>
       </head>
-      <body className="min-h-full bg-[#f8f6f0] text-[#2c1810] font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#e05638]/20 selection:text-[#e05638]">
+      <body className="min-h-full bg-[#FFFFFF] text-[#111114] font-['Inter',sans-serif] selection:bg-[#FF4B2B]/20 selection:text-[#FF4B2B]">
         <StoreProvider>
           <AppShell>{children}</AppShell>
         </StoreProvider>
