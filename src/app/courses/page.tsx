@@ -436,12 +436,3 @@ function Bar({ value, of }: { value: number; of: number }) {
     </div>
   );
 }
-
-<script dangerouslySetInnerHTML={{ __html: `
-  document.addEventListener('click', function(e) {
-    var target = e.target.closest('button, a, input[type="button"], input[type="submit"]');
-    if (target) {
-      new Audio('https://cdn.jsdelivr.net/npm/uisfx@0.4.0/sounds/minimal/press.mp3').play();
-    }
-  });
-` }} />
