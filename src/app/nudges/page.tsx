@@ -23,7 +23,7 @@ export default function NudgesPage() {
       <Page
         title={
           <span className="flex items-center gap-3 font-['Space_Grotesk'] text-[#111114] font-bold text-2xl tracking-tight">
-            <iconify-icon icon="line-md:bell-loop" style={{ fontSize: "32px", color: "#FF4B2B" }}></iconify-icon>
+            <iconify-icon icon="line-md:bell-loop" style={{ fontSize: "32px", color: "var(--appdesigny-color-primary, #FF4B2B)" }}></iconify-icon>
             Nudges
           </span>
         }
@@ -39,7 +39,7 @@ export default function NudgesPage() {
             <Button
               variant="primary"
               className="font-['Space_Grotesk'] font-bold border-2 border-[#111114] text-[#FFFFFF] shadow-[0_4px_0_rgba(17,17,20,1)] hover:translate-y-[-2px] transition-transform"
-              style={{ backgroundColor: "#FF4B2B", borderRadius: "6px" }}
+              style={{ backgroundColor: "var(--appdesigny-color-primary, #FF4B2B)", borderRadius: "var(--appdesigny-radius-sm, 6px)" }}
             >
               New nudge
             </Button>
@@ -58,7 +58,7 @@ export default function NudgesPage() {
                   <Button
                     variant="primary"
                     className="font-['Space_Grotesk'] font-bold border-2 border-[#111114] text-[#FFFFFF] shadow-[0_2px_0_rgba(17,17,20,1)]"
-                    style={{ backgroundColor: "#FF4B2B", borderRadius: "6px" }}
+                    style={{ backgroundColor: "var(--appdesigny-color-primary, #FF4B2B)", borderRadius: "var(--appdesigny-radius-sm, 6px)" }}
                   >
                     Create your first nudge
                   </Button>
@@ -80,14 +80,14 @@ export default function NudgesPage() {
                       <div className="flex items-center gap-3 flex-wrap">
                         <h2 className="text-lg font-bold font-['Space_Grotesk'] text-[#111114] flex items-center gap-2">
                           {n.status === "active" && (
-                            <iconify-icon icon="line-md:loading-loop" style={{ fontSize: "18px", color: "#0B8F5C" }}></iconify-icon>
+                            <iconify-icon icon="line-md:loading-loop" style={{ fontSize: "18px", color: "var(--appdesigny-color-success, #0B8F5C)" }}></iconify-icon>
                           )}
                           {n.name}
                         </h2>
                         <Badge
                           tone={n.status === "active" ? "accent" : "quiet"}
                           className="font-['Space_Grotesk'] border border-[#111114] font-medium"
-                          style={{ borderRadius: "4px" }}
+                          style={{ borderRadius: "var(--appdesigny-radius-sm, 4px)" }}
                         >
                           {n.status === "active" ? "Active" : "Paused"}
                         </Badge>
@@ -95,7 +95,7 @@ export default function NudgesPage() {
                           <Badge
                             tone="neutral"
                             className="font-['Space_Grotesk'] border border-[#111114] font-medium"
-                            style={{ borderRadius: "4px" }}
+                            style={{ borderRadius: "var(--appdesigny-radius-sm, 4px)" }}
                           >
                             Personalised
                           </Badge>
@@ -111,7 +111,7 @@ export default function NudgesPage() {
                         <Button
                           variant="ghost"
                           className="text-[#111114] hover:bg-[#FFFFFF] border-2 border-[#111114] shadow-[0_2px_0_rgba(17,17,20,1)] font-['Space_Grotesk'] font-bold text-xs"
-                          style={{ borderRadius: "6px" }}
+                          style={{ borderRadius: "var(--appdesigny-radius-sm, 6px)" }}
                         >
                           Edit
                         </Button>
@@ -119,7 +119,7 @@ export default function NudgesPage() {
                       <Button
                         variant="ghost"
                         className="text-[#111114] hover:bg-[#FFFFFF] border-2 border-[#111114] shadow-[0_2px_0_rgba(17,17,20,1)] font-['Space_Grotesk'] font-bold text-xs"
-                        style={{ borderRadius: "6px" }}
+                        style={{ borderRadius: "var(--appdesigny-radius-sm, 6px)" }}
                         onClick={() =>
                           updateNudge(n.id, {
                             status: n.status === "active" ? "paused" : "active",
@@ -131,7 +131,7 @@ export default function NudgesPage() {
                       <Button
                         variant="ghost"
                         className="text-[#111114] hover:bg-[#FFFFFF] border-2 border-[#111114] shadow-[0_2px_0_rgba(17,17,20,1)] font-['Space_Grotesk'] font-bold text-xs"
-                        style={{ borderRadius: "6px" }}
+                        style={{ borderRadius: "var(--appdesigny-radius-sm, 6px)" }}
                         onClick={() => {
                           const { id, createdAt, ...rest } = n;
                           void id;
@@ -144,7 +144,7 @@ export default function NudgesPage() {
                       <Button
                         variant="ghost"
                         className="text-[#E3341F] hover:bg-[#E3341F]/10 border-2 border-[#111114] shadow-[0_2px_0_rgba(17,17,20,1)] font-['Space_Grotesk'] font-bold text-xs"
-                        style={{ borderRadius: "6px" }}
+                        style={{ borderRadius: "var(--appdesigny-radius-sm, 6px)" }}
                         onClick={() => removeNudge(n.id)}
                       >
                         Delete
