@@ -332,16 +332,16 @@ export default function AssistantPage() {
 
   return (
     <div
-      className="flex flex-col h-[calc(100dvh-3.5rem)] md:h-dvh bg-[#f8f6f0] text-[#2c1810]"
-      style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+      className="flex flex-col h-[calc(100dvh-3.5rem)] md:h-dvh bg-[var(--appdesigny-color-background,#f8f6f0)] text-[var(--appdesigny-color-text,#2c1810)]"
+      style={{ fontFamily: "var(--appdesigny-font-body, 'Plus Jakarta Sans', sans-serif)" }}
     >
       {/* Header */}
-      <header className="shrink-0 px-6 md:px-9 pt-7 pb-4 flex flex-wrap items-center gap-3 border-b border-[#e6e1d5]">
+      <header className="shrink-0 px-6 md:px-9 pt-7 pb-4 flex flex-wrap items-center gap-3 border-b border-[var(--appdesigny-color-border,#e6e1d5)]">
         <div className="flex-1 min-w-0">
-          <h1 className="text-[27px] md:text-[34px] font-bold tracking-tight text-[#2c1810]">
+          <h1 className="text-[27px] md:text-[34px] font-bold tracking-tight text-[var(--appdesigny-color-text,#2c1810)]">
             Assistant
           </h1>
-          <p className="mt-1 text-[13.5px] text-[#2c1810]/70">
+          <p className="mt-1 text-[13.5px] text-[var(--appdesigny-color-text,#2c1810)]/70">
             Knows your students, courses, and money — and can run the app for you.
           </p>
         </div>
@@ -365,20 +365,20 @@ export default function AssistantPage() {
       {showHistory ? (
         <div className="shrink-0 px-6 md:px-9 pt-3 pb-3">
           <div
-            className="max-h-[230px] overflow-y-auto bg-white rounded-2xl border border-[#e6e1d5] p-2"
-            style={{ boxShadow: "0 2px 6px rgba(44, 24, 16, 0.05)" }}
+            className="max-h-[230px] overflow-y-auto bg-[var(--appdesigny-color-surface,white)] rounded-2xl border border-[var(--appdesigny-color-border,#e6e1d5)] p-2"
+            style={{ boxShadow: "var(--appdesigny-shadow-sm, 0 2px 6px rgba(44, 24, 16, 0.05))" }}
           >
             {chats.map((c) => (
               <button
                 key={c.id}
                 type="button"
-                className="w-full text-left px-3.5 py-2.5 rounded-lg hover:bg-[#f8f6f0] transition-colors border-b border-[#e6e1d5]/50 last:border-b-0 flex flex-col gap-0.5"
+                className="w-full text-left px-3.5 py-2.5 rounded-lg hover:bg-[var(--appdesigny-color-background,#f8f6f0)] transition-colors border-b border-[var(--appdesigny-color-border,#e6e1d5)]/50 last:border-b-0 flex flex-col gap-0.5"
                 onClick={() => openChat(c)}
               >
-                <span className="text-[13.5px] font-medium text-[#2c1810] block truncate">
+                <span className="text-[13.5px] font-medium text-[var(--appdesigny-color-text,#2c1810)] block truncate">
                   {c.title}
                 </span>
-                <span className="text-[11.5px] text-[#2c1810]/60 block">
+                <span className="text-[11.5px] text-[var(--appdesigny-color-text,#2c1810)]/60 block">
                   {new Date(c.updatedAt).toLocaleString()}
                 </span>
               </button>
@@ -392,15 +392,15 @@ export default function AssistantPage() {
         <div className="max-w-[780px] mx-auto pb-4">
           {turns.length === 0 ? (
             <div
-              className="bg-white rounded-[28px] p-7 border border-[#e6e1d5]"
+              className="bg-[var(--appdesigny-color-surface,white)] rounded-[28px] p-7 border border-[var(--appdesigny-color-border,#e6e1d5)]"
               style={{
                 boxShadow: "0 12px 32px -8px rgba(224, 86, 56, 0.12)",
               }}
             >
-              <p className="text-[16px] font-bold text-[#2c1810]">
+              <p className="text-[16px] font-bold text-[var(--appdesigny-color-text,#2c1810)]">
                 Ask me anything about your teaching.
               </p>
-              <p className="mt-2 text-[14px] text-[#2c1810]/75 leading-relaxed">
+              <p className="mt-2 text-[14px] text-[var(--appdesigny-color-text,#2c1810)]/75 leading-relaxed">
                 I can read everything in Labbay and change it too — send a message
                 to a group, set up a nudge, check who has paid. Attach a photo or a
                 file and I will read that as well.
@@ -411,8 +411,8 @@ export default function AssistantPage() {
                     key={s}
                     type="button"
                     onClick={() => ask(s)}
-                    className="px-4.5 py-2.5 rounded-full bg-[#f8f6f0] border border-[#e6e1d5] hover:border-[#e05638] hover:bg-white text-[#2c1810] hover:text-[#e05638] text-[13.5px] font-medium transition-all shadow-xs"
-                    style={{ boxShadow: "0 2px 6px rgba(44, 24, 16, 0.05)" }}
+                    className="px-4.5 py-2.5 rounded-full bg-[var(--appdesigny-color-background,#f8f6f0)] border border-[var(--appdesigny-color-border,#e6e1d5)] hover:border-[var(--appdesigny-color-primary,#e05638)] hover:bg-[var(--appdesigny-color-surface,white)] text-[var(--appdesigny-color-text,#2c1810)] hover:text-[var(--appdesigny-color-primary,#e05638)] text-[13.5px] font-medium transition-all shadow-xs"
+                    style={{ boxShadow: "var(--appdesigny-shadow-sm, 0 2px 6px rgba(44, 24, 16, 0.05))" }}
                   >
                     {s}
                   </button>
@@ -434,7 +434,7 @@ export default function AssistantPage() {
                             key={j}
                             src={src}
                             alt=""
-                            className="w-24 h-24 rounded-2xl object-cover border border-[#e6e1d5]"
+                            className="w-24 h-24 rounded-2xl object-cover border border-[var(--appdesigny-color-border,#e6e1d5)]"
                           />
                         ))}
                       </div>
@@ -444,12 +444,12 @@ export default function AssistantPage() {
                       className={cx(
                         "inline-block text-left text-[14.5px] leading-relaxed",
                         t.role === "user"
-                          ? "bg-[#e05638] text-white rounded-[24px] rounded-br-[8px] px-4.5 py-3.5 whitespace-pre-wrap shadow-sm"
-                          : "bg-white text-[#2c1810] border border-[#e6e1d5] rounded-[24px] rounded-bl-[8px] px-5.5 py-4",
+                          ? "bg-[var(--appdesigny-color-primary,#e05638)] text-white rounded-[24px] rounded-br-[8px] px-4.5 py-3.5 whitespace-pre-wrap shadow-sm"
+                          : "bg-[var(--appdesigny-color-surface,white)] text-[var(--appdesigny-color-text,#2c1810)] border border-[var(--appdesigny-color-border,#e6e1d5)] rounded-[24px] rounded-bl-[8px] px-5.5 py-4",
                       )}
                       style={
                         t.role === "assistant"
-                          ? { boxShadow: "0 2px 6px rgba(44, 24, 16, 0.05)" }
+                          ? { boxShadow: "var(--appdesigny-shadow-sm, 0 2px 6px rgba(44, 24, 16, 0.05))" }
                           : undefined
                       }
                     >
@@ -468,9 +468,9 @@ export default function AssistantPage() {
                         {t.actions.map((a, j) => (
                           <li
                             key={j}
-                            className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#10b981]/10 text-[#10b981] border border-[#10b981]/20 text-[12px] font-semibold"
+                            className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[var(--appdesigny-color-success,#10b981)]/10 text-[var(--appdesigny-color-success,#10b981)] border border-[var(--appdesigny-color-success,#10b981)]/20 text-[12px] font-semibold"
                           >
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#10b981]" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-[var(--appdesigny-color-success,#10b981)]" />
                             {a}
                           </li>
                         ))}
@@ -486,7 +486,7 @@ export default function AssistantPage() {
                       <button
                         type="button"
                         onClick={() => copy(t.text, `turn-${i}`)}
-                        className="text-[11.5px] font-semibold text-[#2c1810]/50 hover:text-[#e05638] px-1"
+                        className="text-[11.5px] font-semibold text-[var(--appdesigny-color-text,#2c1810)]/50 hover:text-[var(--appdesigny-color-primary,#e05638)] px-1"
                       >
                         {copied === `turn-${i}` ? "Copied" : "Copy"}
                       </button>
@@ -498,19 +498,19 @@ export default function AssistantPage() {
               {working ? (
                 <li className="flex">
                   <div
-                    className="bg-white rounded-[24px] rounded-bl-[8px] px-5 py-3.5 flex items-center gap-3 border border-dashed border-[#e05638]/40"
+                    className="bg-[var(--appdesigny-color-surface,white)] rounded-[24px] rounded-bl-[8px] px-5 py-3.5 flex items-center gap-3 border border-dashed border-[var(--appdesigny-color-primary,#e05638)]/40"
                     style={{
-                      boxShadow: "inset 0 2px 4px rgba(44, 24, 16, 0.04), 0 2px 6px rgba(44, 24, 16, 0.05)",
+                      boxShadow: "inset 0 2px 4px rgba(44, 24, 16, 0.04), var(--appdesigny-shadow-sm, 0 2px 6px rgba(44, 24, 16, 0.05))",
                     }}
                   >
                     <iconify-icon
                       icon="line-md:loading-loop"
-                      style={{ fontSize: "20px", color: "#e05638" }}
+                      style={{ fontSize: "20px", color: "var(--appdesigny-color-primary, #e05638)" }}
                     />
                     <Dot delay="0ms" />
                     <Dot delay="140ms" />
                     <Dot delay="280ms" />
-                    <span className="text-[13.5px] font-medium text-[#e05638] ml-1">
+                    <span className="text-[13.5px] font-medium text-[var(--appdesigny-color-primary,#e05638)] ml-1">
                       {working}
                     </span>
                   </div>
@@ -520,7 +520,7 @@ export default function AssistantPage() {
           )}
 
           {error ? (
-            <div className="mt-5 rounded-2xl bg-[#dc2626]/10 border border-[#dc2626]/30 text-[#dc2626] px-4.5 py-3 text-[13.5px] leading-relaxed">
+            <div className="mt-5 rounded-2xl bg-[var(--appdesigny-color-error,#dc2626)]/10 border border-[var(--appdesigny-color-error,#dc2626)]/30 text-[var(--appdesigny-color-error,#dc2626)] px-4.5 py-3 text-[13.5px] leading-relaxed">
               {error}
             </div>
           ) : null}
@@ -548,7 +548,7 @@ export default function AssistantPage() {
             onSend={(text, attachments) => void ask(text, attachments)}
             onStop={() => abortRef.current?.abort()}
           />
-          <p className="text-[11.5px] text-[#2c1810]/50 text-center mt-2.5">
+          <p className="text-[11.5px] text-[var(--appdesigny-color-text,#2c1810)]/50 text-center mt-2.5">
             Enter to send · Shift+Enter for a new line · drop or paste a file
           </p>
         </div>
@@ -572,7 +572,7 @@ export default function AssistantPage() {
 function Dot({ delay }: { delay: string }) {
   return (
     <span
-      className="w-1.5 h-1.5 rounded-full bg-[#e05638] animate-bounce"
+      className="w-1.5 h-1.5 rounded-full bg-[var(--appdesigny-color-primary,#e05638)] animate-bounce"
       style={{ animationDelay: delay }}
     />
   );
