@@ -64,7 +64,7 @@ export default function SendPage() {
         <div 
           className="p-10 max-w-[600px] rounded-[10px] border-2 border-[#111114] bg-[#F4F4F6] text-[#111114] font-['Inter',sans-serif]"
           style={{
-            boxShadow: '0 4px 0 rgba(17,17,20,1)',
+            boxShadow: 'var(--appdesigny-shadow-md, 0 4px 0 rgba(17,17,20,1))',
           }}
         >
           <div className="flex items-center justify-between gap-4">
@@ -92,13 +92,13 @@ export default function SendPage() {
               variant="primary" 
               onClick={() => router.push("/messages")}
               style={{
-                backgroundColor: '#FF4B2B',
+                backgroundColor: 'var(--appdesigny-color-primary, #FF4B2B)',
                 color: '#FFFFFF',
-                borderRadius: '6px',
-                border: '2px solid #111114',
-                boxShadow: '0 2px 0 rgba(17,17,20,1)',
+                borderRadius: 'var(--appdesigny-radius-sm, 6px)',
+                border: 'var(--appdesigny-border-width, 2px) solid var(--appdesigny-color-border, #111114)',
+                boxShadow: 'var(--appdesigny-shadow-sm, 0 2px 0 rgba(17,17,20,1))',
                 fontWeight: 'bold',
-                fontFamily: "'Space Grotesk', sans-serif"
+                fontFamily: "var(--appdesigny-font-heading, 'Space Grotesk', sans-serif)"
               }}
             >
               See messages
@@ -106,13 +106,13 @@ export default function SendPage() {
             <Button 
               onClick={() => setResult(null)}
               style={{
-                backgroundColor: '#FFFFFF',
-                color: '#111114',
-                borderRadius: '6px',
-                border: '2px solid #111114',
-                boxShadow: '0 2px 0 rgba(17,17,20,1)',
+                backgroundColor: 'var(--appdesigny-color-surface, #FFFFFF)',
+                color: 'var(--appdesigny-color-text, #111114)',
+                borderRadius: 'var(--appdesigny-radius-sm, 6px)',
+                border: 'var(--appdesigny-border-width, 2px) solid var(--appdesigny-color-border, #111114)',
+                boxShadow: 'var(--appdesigny-shadow-sm, 0 2px 0 rgba(17,17,20,1))',
                 fontWeight: 'bold',
-                fontFamily: "'Space Grotesk', sans-serif"
+                fontFamily: "var(--appdesigny-font-heading, 'Space Grotesk', sans-serif)"
               }}
             >
               Send another
@@ -136,7 +136,7 @@ export default function SendPage() {
         <div 
           className="p-8 space-y-8 rounded-[10px] border-2 border-[#111114] bg-[#F4F4F6] text-[#111114]"
           style={{
-            boxShadow: '0 4px 0 rgba(17,17,20,1)'
+            boxShadow: 'var(--appdesigny-shadow-md, 0 4px 0 rgba(17,17,20,1))'
           }}
         >
           <Field label="Message">
@@ -147,12 +147,12 @@ export default function SendPage() {
               placeholder="Remind them the homework is due tomorrow."
               autoFocus
               style={{
-                borderRadius: '6px',
-                border: '2px solid #111114',
-                boxShadow: '0 2px 0 rgba(17,17,20,1)',
-                backgroundColor: '#FFFFFF',
-                color: '#111114',
-                fontFamily: "'Inter', sans-serif"
+                borderRadius: 'var(--appdesigny-radius-sm, 6px)',
+                border: 'var(--appdesigny-border-width, 2px) solid var(--appdesigny-color-border, #111114)',
+                boxShadow: 'var(--appdesigny-shadow-sm, 0 2px 0 rgba(17,17,20,1))',
+                backgroundColor: 'var(--appdesigny-color-surface, #FFFFFF)',
+                color: 'var(--appdesigny-color-text, #111114)',
+                fontFamily: "var(--appdesigny-font-body, 'Inter', sans-serif)"
               }}
             />
           </Field>
@@ -193,7 +193,7 @@ export default function SendPage() {
             </button>
 
             {showOptions ? (
-              <div className="flex flex-wrap items-center gap-6 mt-5 p-5 rounded-[6px] bg-[#FFFFFF] border-2 border-[#111114]" style={{ boxShadow: '0 2px 0 rgba(17,17,20,1)' }}>
+              <div className="flex flex-wrap items-center gap-6 mt-5 p-5 rounded-[6px] bg-[#FFFFFF] border-2 border-[#111114]" style={{ boxShadow: 'var(--appdesigny-shadow-sm, 0 2px 0 rgba(17,17,20,1))' }}>
                 <Field label="Tone">
                   <Select
                     value={tone}
@@ -240,18 +240,18 @@ export default function SendPage() {
               onClick={send} 
               disabled={!canSend}
               style={{
-                backgroundColor: canSend ? '#FF4B2B' : '#F4F4F6',
-                color: canSend ? '#FFFFFF' : '#111114',
-                borderRadius: '6px',
-                border: '2px solid #111114',
-                paddingLeft: '24px',
-                paddingRight: '24px',
-                paddingTop: '12px',
-                paddingBottom: '12px',
-                boxShadow: canSend ? '0 4px 0 rgba(17,17,20,1)' : 'none',
+                backgroundColor: canSend ? 'var(--appdesigny-color-primary, #FF4B2B)' : '#F4F4F6',
+                color: canSend ? '#FFFFFF' : 'var(--appdesigny-color-text, #111114)',
+                borderRadius: 'var(--appdesigny-radius-sm, 6px)',
+                border: 'var(--appdesigny-border-width, 2px) solid var(--appdesigny-color-border, #111114)',
+                paddingLeft: 'var(--appdesigny-space-lg, 24px)',
+                paddingRight: 'var(--appdesigny-space-lg, 24px)',
+                paddingTop: 'var(--appdesigny-space-sm, 12px)',
+                paddingBottom: 'var(--appdesigny-space-sm, 12px)',
+                boxShadow: canSend ? 'var(--appdesigny-shadow-md, 0 4px 0 rgba(17,17,20,1))' : 'none',
                 opacity: canSend ? 1 : 0.6,
                 fontWeight: 'bold',
-                fontFamily: "'Space Grotesk', sans-serif"
+                fontFamily: "var(--appdesigny-font-heading, 'Space Grotesk', sans-serif)"
               }}
             >
               <div className="flex items-center gap-2">
@@ -277,7 +277,7 @@ export default function SendPage() {
         <div 
           className="p-8 rounded-[10px] border-2 border-[#111114] bg-[#F4F4F6] text-[#111114]"
           style={{
-            boxShadow: '0 4px 0 rgba(17,17,20,1)'
+            boxShadow: 'var(--appdesigny-shadow-md, 0 4px 0 rgba(17,17,20,1))'
           }}
         >
           <div className="flex items-baseline justify-between mb-5">
@@ -321,7 +321,7 @@ export default function SendPage() {
                   <p 
                     className="text-[14px] leading-relaxed bg-[#FFFFFF] text-[#111114] border-2 border-[#111114] rounded-[6px] p-4"
                     style={{
-                      boxShadow: '0 2px 0 rgba(17,17,20,1)'
+                      boxShadow: 'var(--appdesigny-shadow-sm, 0 2px 0 rgba(17,17,20,1))'
                     }}
                   >
                     {composeFor(
