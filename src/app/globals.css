@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --color-canvas: #ffffff;
+  --color-canvas: #0a0a0c;
   --color-paper: #f4f4f6;
   --color-shell: #f4f4f6;
   --color-field: #ffffff;
@@ -40,8 +40,8 @@
   }
 
   body {
-    background: var(--appdesigny-color-background, #ffffff);
-    color: var(--appdesigny-color-text, #111114);
+    background: var(--appdesigny-color-background, #0a0a0c);
+    color: var(--appdesigny-color-text, #ffffff);
     font-family: var(--appdesigny-font-body, 'Inter', sans-serif);
     font-size: var(--appdesigny-font-size-body, 15px);
     line-height: var(--appdesigny-line-height-body, 1.5);
