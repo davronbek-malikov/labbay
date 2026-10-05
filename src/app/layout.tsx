@@ -15,7 +15,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" data-theme={process.env.NEXT_PUBLIC_ACTIVE_THEME || 'original'} className="h-full bg-[#FFFFFF] text-[#111114] antialiased">
+    <html lang="en" data-theme={process.env.NEXT_PUBLIC_ACTIVE_THEME || 'original'} className="h-full bg-[#0a0a0c] text-[#ffffff] antialiased">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -27,7 +27,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
       </head>
-      <body className="min-h-full bg-[#FFFFFF] text-[#111114] font-['Inter',sans-serif] selection:bg-[#FF4B2B]/20 selection:text-[#FF4B2B]">
+      <body className="min-h-full bg-[#0a0a0c] text-[#ffffff] font-['Inter',sans-serif] selection:bg-[#FF4B2B]/20 selection:text-[#FF4B2B]">
         <StoreProvider>
           <AppShell>{children}</AppShell>
         </StoreProvider>
